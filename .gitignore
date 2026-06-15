@@ -1,0 +1,53 @@
+﻿/IPRS.slnx
+# From .NET Core 3.0 you can use the command: `dotnet new gitignore` to generate a customizable .gitignore file
+
+IPRS.Server/*.swp
+IPRS.Server/*.*~
+IPRS.Server/project.lock.json
+IPRS.Server/.DS_Store
+IPRS.Server/*.pyc
+
+# Visual Studio Code
+.vscode
+
+# User-specific files
+IPRS.Server/*.suo
+IPRS.Server/*.user
+IPRS.Server/*.userosscache
+IPRS.Server/*.sln.docstates
+
+# Build results
+IPRS.Server/[Dd]ebug/
+IPRS.Server/[Dd]ebugPublic/
+IPRS.Server/[Rr]elease/
+IPRS.Server/[Rr]eleases/
+IPRS.Server/x64/
+IPRS.Server/x86/
+IPRS.Server/build/
+IPRS.Server/bld/
+IPRS.Server/[Bb]in/
+IPRS.Server/[Oo]bj/
+IPRS.Server/msbuild.log
+IPRS.Server/msbuild.err
+IPRS.Server/msbuild.wrn
+
+# Visual Studio 2015
+.vs/
+IPRS.Server/appsettings.Development.json
+
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# dependencies
+iprs.client/node_modules
+
+# testing
+iprs.client/coverage
+
+# production
+iprs.client/build
+
+# misc
+iprs.client/*.DS_Store
+iprs.client/*.env
+
+iprs.client/npm-debug.log
