@@ -1,0 +1,6 @@
+@IPRS.Server_HostAddress = http://localhost:5062
+
+GET {{IPRS.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

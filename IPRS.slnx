@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="iprs.client/iprs.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="IPRS.Server/IPRS.Server.csproj" />
+</Solution>

@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:63257",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "M:\\Documents\\NativeCode_Projects\\C_Sharp_Projects\\IPRS\\IPRS.Server\\..\\iprs.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}
