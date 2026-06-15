@@ -1,53 +1,58 @@
-﻿/IPRS.slnx
-# From .NET Core 3.0 you can use the command: `dotnet new gitignore` to generate a customizable .gitignore file
-
-IPRS.Server/*.swp
-IPRS.Server/*.*~
-IPRS.Server/project.lock.json
-IPRS.Server/.DS_Store
-IPRS.Server/*.pyc
-
-# Visual Studio Code
-.vscode
-
-# User-specific files
-IPRS.Server/*.suo
-IPRS.Server/*.user
-IPRS.Server/*.userosscache
-IPRS.Server/*.sln.docstates
-
-# Build results
-IPRS.Server/[Dd]ebug/
-IPRS.Server/[Dd]ebugPublic/
-IPRS.Server/[Rr]elease/
-IPRS.Server/[Rr]eleases/
-IPRS.Server/x64/
-IPRS.Server/x86/
-IPRS.Server/build/
-IPRS.Server/bld/
-IPRS.Server/[Bb]in/
-IPRS.Server/[Oo]bj/
-IPRS.Server/msbuild.log
-IPRS.Server/msbuild.err
-IPRS.Server/msbuild.wrn
-
-# Visual Studio 2015
+﻿## ==========================================
+## IDE & OS Specific junk
+## ==========================================
 .vs/
-IPRS.Server/appsettings.Development.json
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# See http://help.github.com/ignore-files/ for more about ignoring files.
+## ==========================================
+## .NET Backend (IPRS.Server & future modules)
+## ==========================================
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
 
-# dependencies
-iprs.client/node_modules
+# Logs and user-specific configurations
+*.log
+*.err
+*.wrn
+project.lock.json
+.usersecrets
 
-# testing
-iprs.client/coverage
+# Local development configuration (keeps database credentials safe)
+**/appsettings.Development.json
 
-# production
-iprs.client/build
+## ==========================================
+## React Frontend (iprs.client)
+## ==========================================
+# Dependencies
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# misc
-iprs.client/*.DS_Store
-iprs.client/*.env
+# Production build outputs
+**/iprs.client/build/
+**/iprs.client/dist/
 
-iprs.client/npm-debug.log
+# Testing coverage maps
+**/coverage/
+
+# Local environment secret variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
