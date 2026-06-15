@@ -13,13 +13,14 @@ public class PurchaseRequestRepository :BaseRepository,  IPurchaseRequestReposit
 
     public async Task CreateAsync(PurchaseRequest purchaseRequest)
     {
-        await _context.PurchaseRequests.AddAsync(purchaseRequest);
+        await Context.PurchaseRequests.AddAsync(purchaseRequest);
     }
 
     public async Task<PurchaseRequest?> GetByIdAsync(Guid id)
     {
-        return await _context.PurchaseRequests
+        return await Context.PurchaseRequests
             .Include(p => p.Category)
+            .Include(p => p.RequestedBy)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
@@ -27,7 +28,7 @@ public class PurchaseRequestRepository :BaseRepository,  IPurchaseRequestReposit
         int? targetDepartmentId, PurchaseRequestStatus? status,
         DateTime? fromDate, DateTime? toDate)
     {
-        IQueryable<PurchaseRequest> query = _context.PurchaseRequests.Include(p => p.Category);
+        IQueryable<PurchaseRequest> query = Context.PurchaseRequests.Include(p => p.Category);
 
         if (targetUserId.HasValue)
         {
@@ -56,26 +57,11 @@ public class PurchaseRequestRepository :BaseRepository,  IPurchaseRequestReposit
 
         return await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
     }
-
-    public async Task<ICollection<PurchaseRequest>> GetPurchaseRequestsByUserIdAsync(Guid userId)
+    
+    
+    public async Task<int> CountByYearAsync(int year)
     {
-        return await _context.PurchaseRequests
-            .Where(p => p.RequestedById == userId)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
-    }
-
-    // Returns everything cleanly for Admins and Finance
-    public async Task<ICollection<PurchaseRequest>> GetAllPurchaseRequestsAsync()
-    {
-        return await _context.PurchaseRequests
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
-    }
-
-    public async Task UpdateAsync(PurchaseRequest purchaseRequest)
-    {
-        _context.PurchaseRequests.Update(purchaseRequest);
-        await Task.CompletedTask;
+        return await Context.PurchaseRequests
+            .CountAsync(r => r.CreatedAt.Year == year);
     }
 }

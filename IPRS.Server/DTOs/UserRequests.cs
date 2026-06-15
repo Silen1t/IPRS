@@ -1,8 +1,8 @@
 ﻿namespace IPRS.Server.DTOs;
 
-public record CreateUserRequest(string FullName, string Email, string Password, string Role, int? DepartmentId);
+public record CreateUserDto(string FullName, string Email, string Password, string Role, int? DepartmentId);
 
-public record UserResponse(
+public record UserResponseDto(
     Guid Id,
     string EmployeeId,
     string FullName,
@@ -12,7 +12,7 @@ public record UserResponse(
     bool IsActive,
     DateTime createdAt);
 
-public record UserUpdateRequest(string? FullName, string? Role, int? DepartmentId);
+public record UserUpdateDto(string? FullName, string? Role, int? DepartmentId);
 
 public record UserSummaryResponse(
     Guid Id,

@@ -5,7 +5,7 @@ namespace IPRS.Server.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<ServiceResult<AuthResponseDto>> LoginByEmailAsync(LoginEmailRequestDto dto);
-    Task<ServiceResult<AuthResponseDto>> LoginByEmployeeIdAsync(LoginEmployeeIdRequestDto dto);
+    Task<ServiceResult<AuthResponseDto>> LoginByEmailAsync(LoginEmailDto dto);
+    Task<ServiceResult<AuthResponseDto>> LoginByEmployeeIdAsync(LoginEmployeeIdDto dto);
     Task<ServiceResult<UserProfileDto>> GetProfileAsync(Guid id);
 }

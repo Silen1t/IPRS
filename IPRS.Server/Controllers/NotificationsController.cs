@@ -31,9 +31,10 @@ public class NotificationsController : BaseApiController
     }
 
     [HttpPatch("{id:guid}/read")]
-    public async Task<IActionResult> UpdateReadStatusNotification(UpdateNotificationReadStatusRequestDto request)
+    public async Task<IActionResult> UpdateReadStatusNotification(Guid id,
+        [FromBody] UpdateNotificationReadStatusDto request)
     {
-        var status = await _notificationService.UpdateNotificationReadStatus(request);
+        var status = await _notificationService.UpdateNotificationReadStatus(id, request);
         if (!status.Success) return BadRequest(status.Message);
         return Ok(status.Message);
     }
@@ -43,7 +44,7 @@ public class NotificationsController : BaseApiController
     {
         var status = await _notificationService
             .UpdateAllNotificationReadStatus(CurrentUserId, true);
-        
+
         if (!status.Success) return BadRequest(status.Message);
         return Ok(status.Message);
     }

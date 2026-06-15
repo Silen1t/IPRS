@@ -1,5 +1,6 @@
 ﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
+using IPRS.Server.Extensions;
 using IPRS.Server.Models;
 using IPRS.Server.Repositories.Interfaces;
 using IPRS.Server.Services.Interfaces;
@@ -14,10 +15,14 @@ public class CategoryService : ICategoryService
     {
         _categoryRepo = categoryRepo;
     }
-    
-    public async Task<IEnumerable<Category>> GetAllActiveAsync()
+
+    public async Task<ServiceResult<ICollection<CategoryLookupDto>>> GetAllActiveAsync()
     {
-        return  await _categoryRepo.GetAllActiveAsync();
+        var categories = await _categoryRepo.GetAllActiveAsync();
+
+        // 🎯 Map only the required data properties to the DTO
+        var dtos = categories.Select(c => c.ToLookUp()).ToArray();
+        return ServiceResult<ICollection<CategoryLookupDto>>.LogSuccess(dtos);
     }
 
     public async Task<ServiceResult<Category>> CreateCategoryAsync(CreateCategoryDto dto)
@@ -31,10 +36,10 @@ public class CategoryService : ICategoryService
         {
             Name = dto.Name
         };
-        
+
         await _categoryRepo.AddAsync(category);
         await _categoryRepo.SaveChangesAsync();
-        
+
         return ServiceResult<Category>.LogSuccess(category);
     }
 
@@ -45,7 +50,7 @@ public class CategoryService : ICategoryService
 
         category.Name = dto.Name;
         category.IsActive = dto.IsActive;
-        
+
         await _categoryRepo.SaveChangesAsync();
         return ServiceResult<Category>.LogSuccess(category);
     }

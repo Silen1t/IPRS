@@ -4,7 +4,6 @@ using IPRS.Server.DTOs;
 using IPRS.Server.Extensions;
 using IPRS.Server.Helpers;
 using IPRS.Server.Models;
-using IPRS.Server.Repositories;
 using IPRS.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using IPRS.Server.Services.Interfaces;
@@ -20,30 +19,35 @@ public class UserService : IUserService
         _userRepo = userRepo;
     }
 
-    public async Task<ServiceResult<UserResponse>> RegisterUserAsync(CreateUserRequest request)
+    public async Task<ServiceResult<UserResponseDto>> RegisterUserAsync(CreateUserDto dto)
     {
-        var existingUser = await _userRepo.GetByEmailAsync(request.Email.ToLower().Trim());
-        if (existingUser != null) return ServiceResult<UserResponse>.LogFailure("Email is already registered.");
+        var existingUser = await _userRepo.GetByEmailAsync(dto.Email.ToLower().Trim());
+        if (existingUser != null) return ServiceResult<UserResponseDto>.LogFailure("Email is already registered.");
 
         var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
-            request.Role
+            dto.Role
             , "Invalid role"
             , true);
 
         if (!convertedRole.Success)
         {
-            return ServiceResult<UserResponse>.LogFailure(convertedRole.Message);
+            return ServiceResult<UserResponseDto>.LogFailure(convertedRole.Message);
         }
 
-        var newUser = request.CreateUser();
-
+        var result = dto.CreateUser();
+        if (!result.Success) return ServiceResult<UserResponseDto>.LogFailure(result.Message);
+        
+        User newUser = result.Data!;
+        string secureHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+        
         const int maxRetries = 3;
-
         for (int attempt = 0; attempt < maxRetries; attempt++)
         {
             try
             {
                 newUser.EmployeeId = GenerateSecure10DigitNumber().ToString();
+                newUser.PasswordHash = secureHash;
+                
                 await _userRepo.AddAsync(newUser);
                 await _userRepo.SaveChangesAsync();
                 break; // success, exit loop
@@ -51,14 +55,14 @@ public class UserService : IUserService
             catch (DbUpdateException ex) when (IsUniqueViolation(ex))
             {
                 if (attempt == maxRetries - 1)
-                    return ServiceResult<UserResponse>.LogFailure("Failed to generate a unique Employee ID.");
+                    return ServiceResult<UserResponseDto>.LogFailure("Failed to generate a unique Employee ID.");
             }
         }
 
-        return ServiceResult<UserResponse>.LogSuccess(newUser.ToResponse());
+        return ServiceResult<UserResponseDto>.LogSuccess(newUser.ToResponse());
     }
 
-    public async Task<UserResponse?> GetUserByIdAsync(Guid id)
+    public async Task<UserResponseDto?> GetUserByIdAsync(Guid id)
     {
         User? user = await _userRepo.GetByIdAsync(id);
         if (user == null) return null;
@@ -66,7 +70,7 @@ public class UserService : IUserService
         return user.ToResponse();
     }
 
-    public async Task<ServiceResult<ICollection<UserResponse>>> GetAllUsersAsync(string? role, int? departmentId,
+    public async Task<ServiceResult<ICollection<UserResponseDto>>> GetAllUsersAsync(string? role, int? departmentId,
         bool? isActive)
     {
         UserRole? parsedRole = null;
@@ -77,7 +81,7 @@ public class UserService : IUserService
                 $"Invalid user role. Valid options are: {string.Join(", ", Enum.GetNames(typeof(UserRole)))}");
             if (!convertedRole.Success)
             {
-                return ServiceResult<ICollection<UserResponse>>.LogFailure(convertedRole.Message);
+                return ServiceResult<ICollection<UserResponseDto>>.LogFailure(convertedRole.Message);
             }
 
             parsedRole = convertedRole.Data;
@@ -87,36 +91,36 @@ public class UserService : IUserService
         
         var users = result.Select(u => u.ToResponse()).ToList();
 
-        return ServiceResult<ICollection<UserResponse>>.LogSuccess(users);
+        return ServiceResult<ICollection<UserResponseDto>>.LogSuccess(users);
     }
 
-    public async Task<ServiceResult<UserResponse>> UpdateUserAsync(Guid id, UserUpdateRequest request)
+    public async Task<ServiceResult<UserResponseDto>> UpdateUserAsync(Guid id, UserUpdateDto dto)
     {
         User? user = await _userRepo.GetByIdAsync(id);
-        if (user == null) return ServiceResult<UserResponse>.LogFailure("User not found.");
+        if (user == null) return ServiceResult<UserResponseDto>.LogFailure("User not found.");
         
-        if (!string.IsNullOrEmpty(request.Role))
+        if (!string.IsNullOrEmpty(dto.Role))
         {
             var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
-                request.Role!
+                dto.Role!
                 , "Invalid role"
                 , true);
 
             if (!convertedRole.Success)
             {
-                return ServiceResult<UserResponse>.LogFailure(convertedRole.Message);
+                return ServiceResult<UserResponseDto>.LogFailure(convertedRole.Message);
             }
 
             user.Role = convertedRole.Data; 
         }
 
-        if (request.FullName != null) user.FullName = request.FullName;
-        if (request.DepartmentId != null) user.DepartmentId = request.DepartmentId.Value;
+        if (dto.FullName != null) user.FullName = dto.FullName;
+        if (dto.DepartmentId != null) user.DepartmentId = dto.DepartmentId.Value;
 
         await _userRepo.UpdateAsync(user);
         await _userRepo.SaveChangesAsync();
 
-        return ServiceResult<UserResponse>.LogSuccess(user.ToResponse());
+        return ServiceResult<UserResponseDto>.LogSuccess(user.ToResponse());
     }
 
     public async Task<ServiceResult<bool>> SetUserActiveStatusAsync(Guid id, bool isActive)

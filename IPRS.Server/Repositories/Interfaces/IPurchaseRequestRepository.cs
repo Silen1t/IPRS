@@ -14,5 +14,5 @@ public interface IPurchaseRequestRepository : IBaseRepository
         DateTime? fromDate,
         DateTime? toDate);
 
-    Task UpdateAsync(PurchaseRequest purchaseRequest);
+    Task<int> CountByYearAsync(int year);
 }

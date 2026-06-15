@@ -12,18 +12,17 @@ public class CategoriesController : ControllerBase
 {
     private readonly ICategoryService _categoryService;
 
-    public CategoriesController(ICategoryService superClass)
+    public CategoriesController(ICategoryService categoryService)
     {
-        _categoryService = superClass;
+        _categoryService = categoryService;
     }
 
     // GET: api/categories
     [HttpGet]
-    [Authorize]
     public async Task<IActionResult> GetActive()
     {
         var categories = await _categoryService.GetAllActiveAsync();
-        return Ok(categories);
+        return Ok(categories.Data);
     }
 
     // POST: api/categories

@@ -20,7 +20,7 @@ public class AuthController : BaseApiController
     }
 
     [HttpPost("login/email")]
-    public async Task<IActionResult> Login([FromBody] LoginEmailRequestDto request)
+    public async Task<IActionResult> Login([FromBody] LoginEmailDto request)
     {
         var result = await _authService.LoginByEmailAsync(request);
         if (!result.Success) return Unauthorized(result.Message);
@@ -29,7 +29,7 @@ public class AuthController : BaseApiController
     }
 
     [HttpPost("login/employeeid")]
-    public async Task<IActionResult> Login([FromBody] LoginEmployeeIdRequestDto request)
+    public async Task<IActionResult> Login([FromBody] LoginEmployeeIdDto request)
     {
         var result = await _authService.LoginByEmployeeIdAsync(request);
         if (!result.Success) return Unauthorized(result.Message);

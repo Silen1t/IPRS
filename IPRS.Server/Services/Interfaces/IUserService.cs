@@ -5,9 +5,9 @@ namespace IPRS.Server.Services.Interfaces;
 
 public interface IUserService
 {
-    Task<ServiceResult<UserResponse>> RegisterUserAsync(CreateUserRequest request);
-    Task<UserResponse?> GetUserByIdAsync(Guid id);
-    Task<ServiceResult<ICollection<UserResponse>>> GetAllUsersAsync(string? role, int? departmentId, bool? isActive);
-    Task<ServiceResult<UserResponse>> UpdateUserAsync(Guid id, UserUpdateRequest request);
+    Task<ServiceResult<UserResponseDto>> RegisterUserAsync(CreateUserDto dto);
+    Task<UserResponseDto?> GetUserByIdAsync(Guid id);
+    Task<ServiceResult<ICollection<UserResponseDto>>> GetAllUsersAsync(string? role, int? departmentId, bool? isActive);
+    Task<ServiceResult<UserResponseDto>> UpdateUserAsync(Guid id, UserUpdateDto dto);
     Task<ServiceResult<bool>> SetUserActiveStatusAsync(Guid id, bool isActive);
 }

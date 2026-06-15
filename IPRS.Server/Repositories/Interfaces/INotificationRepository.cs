@@ -8,5 +8,6 @@ public interface INotificationRepository : IBaseRepository
     Task<ICollection<Notification>> GetAllByUserIdAsync(Guid userId);
     Task<Notification?> UpdateReadStatus(Guid notificationId, bool readStatus);
     Task UpdateAllReadStatus(Guid userId, bool readStatus);
+    Task CreateAsync(Notification notification);
     
 }

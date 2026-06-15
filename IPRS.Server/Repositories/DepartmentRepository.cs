@@ -14,16 +14,16 @@ public class DepartmentRepository : BaseRepository, IDepartmentRepository
 
     public async Task<Department?> GetByIdAsync(int id)
     {
-        return await _context.Departments.FirstOrDefaultAsync(d => d.Id == id);
+        return await Context.Departments.FirstOrDefaultAsync(d => d.Id == id);
     }
 
     public async Task<bool> NameExistsAsync(string name)
     {
-        return await _context.Departments.AnyAsync(c => c.Name == name);
+        return await Context.Departments.AnyAsync(c => c.Name == name);
     }
 
     public async Task AddAsync(Department department)
     {
-        await  _context.Departments.AddAsync(department);
+        await  Context.Departments.AddAsync(department);
     }
 }

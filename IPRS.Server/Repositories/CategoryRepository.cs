@@ -13,23 +13,21 @@ public class CategoryRepository : BaseRepository, ICategoryRepository
 
     public async Task<IEnumerable<Category>> GetAllActiveAsync()
     {
-        return await _context.Categories.Where(c => c.IsActive)
-            .Include(c => c.PurchaseRequests)
-            .ToListAsync();
+        return await Context.Categories.Where(c => c.IsActive).ToListAsync();
     }
 
     public async Task<Category?> GetByIdAsync(int id)
     {
-        return await _context.Categories.FindAsync(id);
+        return await Context.Categories.FindAsync(id);
     }
 
     public async Task<bool> NameExistsAsync(string name)
     {
-        return await _context.Categories.AnyAsync(c => c.Name == name);
+        return await Context.Categories.AnyAsync(c => c.Name == name);
     }
 
     public async Task AddAsync(Category category)
     {
-        await _context.Categories.AddAsync(category);
+        await Context.Categories.AddAsync(category);
     }
 }

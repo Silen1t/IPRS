@@ -29,18 +29,11 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {
-        try
-        {
-            var createdUserDto = await _userService.RegisterUserAsync(request);
-            if (!createdUserDto.Success) return BadRequest(createdUserDto.Message);
-            return CreatedAtAction(nameof(GetById), new { createdUserDto.Data!.Id }, createdUserDto);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message });
-        }
+        var createdUserDto = await _userService.RegisterUserAsync(dto);
+        if (!createdUserDto.Success) return BadRequest(createdUserDto.Message);
+        return CreatedAtAction(nameof(GetById), new { id = createdUserDto.Data!.Id }, createdUserDto);
     }
 
     [HttpGet("{id}")]
@@ -52,9 +45,9 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateRequest request)
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateDto dto)
     {
-        var res = await _userService.UpdateUserAsync(id, request);
+        var res = await _userService.UpdateUserAsync(id, dto);
 
         if (!res.Success) return BadRequest(res.Message);
 

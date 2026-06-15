@@ -10,4 +10,14 @@ public static class NotificationMappingExtensions
         return new NotificationResponseDto(notification.Id, notification.Message,
             notification.IsRead, notification.CreatedAt);
     }
+
+    public static Notification CreateNotification(this CreateNotificationDto request)
+    {
+        return new Notification()
+        {
+            Message = request.Message,
+            RelatedRequestId =  request.RelatedRequestId,
+            UserId =  request.UserId,
+        };
+    }
 }

@@ -21,7 +21,7 @@ public class AuthService : IAuthService
         _config = config;
     }
 
-    public async Task<ServiceResult<AuthResponseDto>> LoginByEmailAsync(LoginEmailRequestDto dto)
+    public async Task<ServiceResult<AuthResponseDto>> LoginByEmailAsync(LoginEmailDto dto)
     {
         var user = await _userRepository.GetByEmailAsync(dto.Email.ToLower().Trim());
         if (user == null || !user.IsActive)
@@ -31,10 +31,10 @@ public class AuthService : IAuthService
         if (!isPasswordValid)
             return ServiceResult<AuthResponseDto>.LogFailure("Invalid email or password");
 
-        return await Login(user);
+        return Login(user);
     }
 
-    public async Task<ServiceResult<AuthResponseDto>> LoginByEmployeeIdAsync(LoginEmployeeIdRequestDto dto)
+    public async Task<ServiceResult<AuthResponseDto>> LoginByEmployeeIdAsync(LoginEmployeeIdDto dto)
     {
         var user = await _userRepository.GetByEmployeeIdAsync(dto.EmployeeId);
         if (user == null || !user.IsActive)
@@ -44,20 +44,14 @@ public class AuthService : IAuthService
         if (!isPasswordValid)
             return ServiceResult<AuthResponseDto>.LogFailure("Invalid employee id or password");
 
-        return await Login(user);
+        return Login(user);
     }
 
-    private async Task<ServiceResult<AuthResponseDto>> Login(User user)
+    private ServiceResult<AuthResponseDto> Login(User user)
     {
         string token = GenerateJwtToken(user);
-        
-        var res = new AuthResponseDto()
-        {
-            Token = token,
-            FullName = user.FullName,
-            Role = user.Role.ToString(),
-            EmployeeId = user.EmployeeId,
-        };
+
+        var res = new AuthResponseDto(user.EmployeeId, user.FullName, token, user.Role.ToString());
 
         return ServiceResult<AuthResponseDto>.LogSuccess(res);
     }
@@ -68,15 +62,14 @@ public class AuthService : IAuthService
         if (user == null || !user.IsActive)
             return ServiceResult<UserProfileDto>.LogFailure("User profile not found or inactive.");
 
-        UserProfileDto profileDto = new UserProfileDto()
-        {
-            FullName = user.FullName,
-            Role = user.Role.ToString(),
-            EmployeeId = user.EmployeeId,
-            DepartmentId = user.DepartmentId,
-            Email = user.Email,
-            DepartmentName = user.Department?.Name,
-        };
+        UserProfileDto profileDto = new UserProfileDto(
+            user.EmployeeId,
+            user.FullName,
+            user.Email,
+            user.Role.ToString(),
+            user.DepartmentId,
+            user.Department?.Name
+        );
 
         return ServiceResult<UserProfileDto>.LogSuccess(profileDto);
     }

@@ -68,12 +68,12 @@ public class PurchaseRequestController : BaseApiController
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "Employee")]
-    public async Task<IActionResult> Create([FromBody] CreatePurchaseRequestDto dto)
+    public async Task<IActionResult> Create([FromBody] CreatePurchaseRequestDto requestDto)
     {
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.CreateRequestAsync(dto, identity.UserId);
+        var result = await _requestService.CreateRequestAsync(requestDto, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
@@ -85,12 +85,12 @@ public class PurchaseRequestController : BaseApiController
     /// </summary>
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Employee")]
-    public async Task<IActionResult> Edit(Guid id, [FromBody] UpdatePurchaseRequestDto dto)
+    public async Task<IActionResult> Edit(Guid id, [FromBody] UpdatePurchaseRequestDto requestDto)
     {
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.EditRequestAsync(id, dto, identity.UserId);
+        var result = await _requestService.EditRequestAsync(id, requestDto, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
@@ -172,7 +172,7 @@ public class PurchaseRequestController : BaseApiController
     [Authorize(Roles = "Finance")] // 🔒 Restricted to Finance role
     public async Task<IActionResult> FinanceApprove(Guid id, [FromBody] FinanceApproveDto dto)
     {
-        var result = await _requestService.FinanceApproveAsync(id, dto);
+        var result = await _requestService.FinanceApproveAsync(id, dto, CurrentUserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
@@ -186,7 +186,7 @@ public class PurchaseRequestController : BaseApiController
     [Authorize(Roles = "Finance")]
     public async Task<IActionResult> FinanceReject(Guid id, [FromBody] FinanceRejectDto dto)
     {
-        var result = await _requestService.FinanceRejectAsync(id, dto);
+        var result = await _requestService.FinanceRejectAsync(id, dto, CurrentUserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);

@@ -7,7 +7,8 @@ public record NotificationResponseDto(
     DateTime CreatedAt
 );
 
-public record UpdateNotificationReadStatusRequestDto(
-    Guid Id,
+public record UpdateNotificationReadStatusDto(
     bool IsRead
 );
+
+public record CreateNotificationDto(Guid UserId, string Message, Guid RelatedRequestId);

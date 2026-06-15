@@ -28,10 +28,10 @@ public class NotificationService : INotificationService
         return ServiceResult<ICollection<NotificationResponseDto>>.LogSuccess(notificationResponses);
     }
 
-    public async Task<ServiceResult<bool?>> UpdateNotificationReadStatus(
-        UpdateNotificationReadStatusRequestDto request)
+    public async Task<ServiceResult<bool?>> UpdateNotificationReadStatus(Guid id,
+        UpdateNotificationReadStatusDto request)
     {
-        var notification = await _notificationRepo.UpdateReadStatus(request.Id, request.IsRead);
+        var notification = await _notificationRepo.UpdateReadStatus(id, request.IsRead);
         if (notification == null)
             return ServiceResult<bool?>.LogFailure("Notification not found.");
 
@@ -43,9 +43,22 @@ public class NotificationService : INotificationService
     {
         if (!await _userRepo.ExistAsync<User>(userId))
             return ServiceResult<bool?>.LogFailure("User not found.");
-        
+
         await _notificationRepo.UpdateAllReadStatus(userId, readStatus);
 
         return ServiceResult<bool?>.LogSuccess(true);
+    }
+
+    public async Task<ServiceResult<Guid>> CreateNotificationAsync(CreateNotificationDto request)
+    {
+        if (!await _userRepo.ExistAsync<User>(request.UserId))
+            return ServiceResult<Guid>.LogFailure($"Notification recipient user with ID {request.UserId} was not found.");
+    
+        var notification = request.CreateNotification();
+    
+        await _notificationRepo.CreateAsync(notification);
+        await _notificationRepo.SaveChangesAsync();
+    
+        return ServiceResult<Guid>.LogSuccess(notification.Id);
     }
 }

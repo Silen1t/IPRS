@@ -29,19 +29,19 @@ public static class PurchaseRequestMappingExtensions
         );
     }
 
-    public static PurchaseRequest CreatePurchaseRequest(this CreatePurchaseRequestDto dto, string requestNumber,
+    public static PurchaseRequest CreatePurchaseRequest(this CreatePurchaseRequestDto requestDto, string requestNumber,
         Guid requestedById, int userDepartmentId)
     {
         return new PurchaseRequest()
         {
             Id = Guid.NewGuid(),
             RequestNumber = requestNumber,
-            Title = dto.Title,
-            CategoryId = dto.CategoryId,
-            Quantity = dto.Quantity,
-            UnitPrice = dto.UnitPrice,
-            UrgencyLevel = dto.UrgencyLevel,
-            Description = dto.Description,
+            Title = requestDto.Title,
+            CategoryId = requestDto.CategoryId,
+            Quantity = requestDto.Quantity,
+            UnitPrice = requestDto.UnitPrice,
+            UrgencyLevel = requestDto.UrgencyLevel,
+            Description = requestDto.Description,
             Status = PurchaseRequestStatus.Draft,
             RequestedById = requestedById,
             DepartmentId = userDepartmentId,
@@ -49,14 +49,14 @@ public static class PurchaseRequestMappingExtensions
         };
     }
 
-    public static PurchaseRequest UpdatePurchaseRequest(this PurchaseRequest request, UpdatePurchaseRequestDto dto)
+    public static PurchaseRequest UpdatePurchaseRequest(this PurchaseRequest request, UpdatePurchaseRequestDto requestDto)
     {
-        request.Title = dto.Title;
-        request.CategoryId = dto.CategoryId;
-        request.Quantity = dto.Quantity;
-        request.UnitPrice = dto.UnitPrice;
-        request.UrgencyLevel = dto.UrgencyLevel;
-        request.Description = dto.Description;
+        request.Title = requestDto.Title;
+        request.CategoryId = requestDto.CategoryId;
+        request.Quantity = requestDto.Quantity;
+        request.UnitPrice = requestDto.UnitPrice;
+        request.UrgencyLevel = requestDto.UrgencyLevel;
+        request.Description = requestDto.Description;
         request.UpdatedAt = DateTime.UtcNow;
         return request;
     }

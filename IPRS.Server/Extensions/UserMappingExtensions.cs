@@ -1,4 +1,5 @@
-﻿using IPRS.Server.DTOs;
+﻿using IPRS.Server.Common;
+using IPRS.Server.DTOs;
 using IPRS.Server.Helpers;
 using IPRS.Server.Models;
 
@@ -6,9 +7,9 @@ namespace IPRS.Server.Extensions;
 
 public static class UserMappingExtensions
 {
-    public static UserResponse ToResponse(this User user)
+    public static UserResponseDto ToResponse(this User user)
     {
-        return new UserResponse(
+        return new UserResponseDto(
             user.Id,
             user.EmployeeId,
             user.FullName,
@@ -20,26 +21,25 @@ public static class UserMappingExtensions
         );
     }
 
-    public static User CreateUser(this CreateUserRequest request)
+    public static ServiceResult<User?> CreateUser(this CreateUserDto dto)
     {
         var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
-            request.Role
+            dto.Role
             , "Invalid role"
             , true);
 
         if (!convertedRole.Success)
         {
-            return null!;
+            return ServiceResult<User?>.LogFailure(convertedRole.Message);
         }
-        string secureHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        
-        return new User()
+
+        User user = new User()
         {
-            FullName = request.FullName,
-            Email = request.Email.ToLower().Trim(),
-            PasswordHash = secureHash,
+            FullName = dto.FullName,
+            Email = dto.Email.ToLower().Trim(),
             Role = convertedRole.Data,
-            DepartmentId = request.DepartmentId,
+            DepartmentId = dto.DepartmentId,
         };
+        return ServiceResult<User?>.LogSuccess(user);
     }
 }
