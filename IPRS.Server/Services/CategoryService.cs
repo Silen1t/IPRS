@@ -1,7 +1,8 @@
 ﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
 using IPRS.Server.Models;
-using IPRS.Server.Repositories;
+using IPRS.Server.Repositories.Interfaces;
+using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
@@ -19,7 +20,7 @@ public class CategoryService : ICategoryService
         return  await _categoryRepo.GetAllActiveAsync();
     }
 
-    public async Task<ServiceResult<Category>> CreateAsync(CreateCategoryDto dto)
+    public async Task<ServiceResult<Category>> CreateCategoryAsync(CreateCategoryDto dto)
     {
         if (await _categoryRepo.NameExistsAsync(dto.Name))
         {
@@ -37,7 +38,7 @@ public class CategoryService : ICategoryService
         return ServiceResult<Category>.LogSuccess(category);
     }
 
-    public async Task<ServiceResult<Category>> UpdateAsync(int id, UpdateCategoryDto dto)
+    public async Task<ServiceResult<Category>> UpdateCategoryAsync(int id, UpdateCategoryDto dto)
     {
         var category = await _categoryRepo.GetByIdAsync(id);
         if (category == null) return ServiceResult<Category>.LogFailure("Category not found.");

@@ -1,12 +1,13 @@
 ﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
 
-namespace IPRS.Server.Services;
+namespace IPRS.Server.Services.Interfaces;
 
 public interface IUserService
 {
     Task<ServiceResult<UserResponse>> RegisterUserAsync(CreateUserRequest request);
     Task<UserResponse?> GetUserByIdAsync(Guid id);
     Task<ServiceResult<ICollection<UserResponse>>> GetAllUsersAsync(string? role, int? departmentId, bool? isActive);
+    Task<ServiceResult<UserResponse>> UpdateUserAsync(Guid id, UserUpdateRequest request);
     Task<ServiceResult<bool>> SetUserActiveStatusAsync(Guid id, bool isActive);
 }

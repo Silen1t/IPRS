@@ -1,40 +1,41 @@
 ﻿using System.Security.Cryptography;
 using IPRS.Server.Common;
 using IPRS.Server.DTOs;
+using IPRS.Server.Extensions;
+using IPRS.Server.Helpers;
 using IPRS.Server.Models;
 using IPRS.Server.Repositories;
+using IPRS.Server.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
 public class UserService : IUserService
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IUserRepository _userRepo;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepo)
     {
-        _userRepository = userRepository;
+        _userRepo = userRepo;
     }
 
     public async Task<ServiceResult<UserResponse>> RegisterUserAsync(CreateUserRequest request)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(request.Email.ToLower().Trim());
+        var existingUser = await _userRepo.GetByEmailAsync(request.Email.ToLower().Trim());
         if (existingUser != null) return ServiceResult<UserResponse>.LogFailure("Email is already registered.");
 
-        string secureHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
+            request.Role
+            , "Invalid role"
+            , true);
 
-        if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
-            return ServiceResult<UserResponse>.LogFailure($"Invalid role: {request.Role}");
-
-        var newUser = new User
+        if (!convertedRole.Success)
         {
-            FullName = request.FullName,
-            Email = request.Email.ToLower().Trim(),
-            PasswordHash = secureHash,
-            Role = role,
-            DepartmentId = request.DepartmentId
-        };
+            return ServiceResult<UserResponse>.LogFailure(convertedRole.Message);
+        }
 
+        var newUser = request.CreateUser();
 
         const int maxRetries = 3;
 
@@ -43,8 +44,8 @@ public class UserService : IUserService
             try
             {
                 newUser.EmployeeId = GenerateSecure10DigitNumber().ToString();
-                await _userRepository.AddAsync(newUser);
-                await _userRepository.SaveChangesAsync();
+                await _userRepo.AddAsync(newUser);
+                await _userRepo.SaveChangesAsync();
                 break; // success, exit loop
             }
             catch (DbUpdateException ex) when (IsUniqueViolation(ex))
@@ -54,20 +55,15 @@ public class UserService : IUserService
             }
         }
 
-        UserResponse userResponse = new UserResponse(newUser.Id, newUser.EmployeeId, newUser.FullName,
-            newUser.Email.ToLower(), newUser.Role.ToString(), newUser.DepartmentId, newUser.IsActive,
-            newUser.CreatedAt);
-
-        return ServiceResult<UserResponse>.LogSuccess(userResponse);
+        return ServiceResult<UserResponse>.LogSuccess(newUser.ToResponse());
     }
 
     public async Task<UserResponse?> GetUserByIdAsync(Guid id)
     {
-        User? user = await _userRepository.GetByIdAsync(id);
+        User? user = await _userRepo.GetByIdAsync(id);
         if (user == null) return null;
 
-        return new UserResponse(user.Id, user.EmployeeId, user.FullName, user.Email, user.Role.ToString(),
-            user.DepartmentId, user.IsActive, user.CreatedAt);
+        return user.ToResponse();
     }
 
     public async Task<ServiceResult<ICollection<UserResponse>>> GetAllUsersAsync(string? role, int? departmentId,
@@ -77,28 +73,60 @@ public class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(role))
         {
-            if (!Enum.TryParse<UserRole>(role, ignoreCase: true, out var userRole))
+            var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(role,
+                $"Invalid user role. Valid options are: {string.Join(", ", Enum.GetNames(typeof(UserRole)))}");
+            if (!convertedRole.Success)
             {
-                return ServiceResult<ICollection<UserResponse>>.LogFailure(
-                    $"Invalid user role. Valid options are: {string.Join(", ", Enum.GetNames(typeof(UserRole)))}");
+                return ServiceResult<ICollection<UserResponse>>.LogFailure(convertedRole.Message);
             }
 
-            parsedRole = userRole;
+            parsedRole = convertedRole.Data;
         }
 
-        ICollection<User> result = await _userRepository.GetFilteredUserAsync(parsedRole, departmentId, isActive);
-        var users = result.Select(ConvertUserToUserResponse).ToList();
+        ICollection<User> result = await _userRepo.GetFilteredAsync(parsedRole, departmentId, isActive);
+        
+        var users = result.Select(u => u.ToResponse()).ToList();
 
         return ServiceResult<ICollection<UserResponse>>.LogSuccess(users);
     }
 
+    public async Task<ServiceResult<UserResponse>> UpdateUserAsync(Guid id, UserUpdateRequest request)
+    {
+        User? user = await _userRepo.GetByIdAsync(id);
+        if (user == null) return ServiceResult<UserResponse>.LogFailure("User not found.");
+        
+        if (!string.IsNullOrEmpty(request.Role))
+        {
+            var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
+                request.Role!
+                , "Invalid role"
+                , true);
+
+            if (!convertedRole.Success)
+            {
+                return ServiceResult<UserResponse>.LogFailure(convertedRole.Message);
+            }
+
+            user.Role = convertedRole.Data; 
+        }
+
+        if (request.FullName != null) user.FullName = request.FullName;
+        if (request.DepartmentId != null) user.DepartmentId = request.DepartmentId.Value;
+
+        await _userRepo.UpdateAsync(user);
+        await _userRepo.SaveChangesAsync();
+
+        return ServiceResult<UserResponse>.LogSuccess(user.ToResponse());
+    }
+
     public async Task<ServiceResult<bool>> SetUserActiveStatusAsync(Guid id, bool isActive)
     {
-        var user = await _userRepository.SetUserActiveStatusAsync(id, isActive);
+        var user = await _userRepo.UpdateActiveStatusAsync(id, isActive);
 
         if (user == null)
             return ServiceResult<bool>.LogFailure($"Failed to {(isActive ? "activate" : "deactivate")} user.");
 
+        await _userRepo.SaveChangesAsync();
         return ServiceResult<bool>.LogSuccess(user.IsActive);
     }
 
@@ -119,12 +147,5 @@ public class UserService : IUserService
     {
         return ex.InnerException?.Message.Contains("UNIQUE") == true ||
                ex.InnerException?.Message.Contains("duplicate") == true;
-    }
-
-    private UserResponse ConvertUserToUserResponse(User user)
-    {
-        string role = user.Role.ToString();
-        return new UserResponse(user.Id, user.EmployeeId, user.FullName, user.Email, role, user.DepartmentId,
-            user.IsActive, user.CreatedAt);
     }
 }

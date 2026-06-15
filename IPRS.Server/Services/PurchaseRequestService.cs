@@ -1,8 +1,10 @@
 ﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
+using IPRS.Server.Extensions;
+using IPRS.Server.Helpers;
 using IPRS.Server.Models;
-using IPRS.Server.Repositories;
-using Microsoft.AspNetCore.Http.HttpResults;
+using IPRS.Server.Repositories.Interfaces;
+using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
@@ -17,12 +19,12 @@ public class PurchaseRequestService : IPurchaseRequestService
         _userRepo = userRepo;
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> CreateRequestAsync(CreatePurchaseRequestDto dto, Guid userId)
+    public async Task<ServiceResult<PurchaseRequestResponse>> CreateRequestAsync(CreatePurchaseRequestDto dto, Guid userId)
     {
         decimal totalPrice = dto.Quantity * dto.UnitPrice;
         if (totalPrice > 50000 && string.IsNullOrWhiteSpace(dto.Description))
         {
-            return ServiceResult<PurchaseRequest>.LogFailure(
+            return ServiceResult<PurchaseRequestResponse>.LogFailure(
                 "A justification description is required for requests exceeding 50,000 SAR.");
         }
 
@@ -36,39 +38,27 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         int currentYear = DateTime.UtcNow.Year;
         int nextSeq = allRequests.Count(r => r.CreatedAt.Year == currentYear) + 1;
+        string requestNumber = $"PR-{currentYear}-{nextSeq:D4}";
+        int userDepartmentId = (int)(await _userRepo.GetDepartmentByIdAsync(userId))!;
 
-        int userDepartmentId = (int)(await _userRepo.GetDepartmentIdByIdAsync(userId))!;
+        var purchaseRequest = dto.CreatePurchaseRequest(requestNumber, userId, userDepartmentId);
 
-        var purchaseRequest = new PurchaseRequest
-        {
-            Id = Guid.NewGuid(),
-            RequestNumber = $"PR-{currentYear}-{nextSeq:D4}",
-            Title = dto.Title,
-            CategoryId = dto.CategoryId,
-            Quantity = dto.Quantity,
-            UnitPrice = dto.UnitPrice,
-            UrgencyLevel = dto.UrgencyLevel,
-            Description = dto.Description,
-            Status = PurchaseRequestStatus.Draft,
-            RequestedById = userId,
-            DepartmentId = userDepartmentId,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await _requestRepo.CreatePurchaseRequestAsync(purchaseRequest);
+        await _requestRepo.CreateAsync(purchaseRequest);
         await _requestRepo.SaveChangesAsync();
-
-        return ServiceResult<PurchaseRequest>.LogSuccess(purchaseRequest);
+        
+        var createdRequest = await _requestRepo.GetByIdAsync(purchaseRequest.Id);
+        
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(createdRequest!.ToResponse());
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> GetRequestByIdAsync(Guid id)
+    public async Task<ServiceResult<PurchaseRequestResponse>> GetRequestByIdAsync(Guid id)
     {
-        var request = await _requestRepo.GetPurchaseRequestByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequest>.LogFailure("Purchase request not found.");
-        return ServiceResult<PurchaseRequest>.LogSuccess(request);
+        var request = await _requestRepo.GetByIdAsync(id);
+        if (request == null) return ServiceResult<PurchaseRequestResponse>.LogFailure("Purchase request not found.");
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(request.ToResponse());
     }
 
-    public async Task<ServiceResult<ICollection<PurchaseRequest>>> GetFilteredRequestsForUserAsync(
+    public async Task<ServiceResult<ICollection<PurchaseRequestResponse>>> GetFilteredRequestsForUserAsync(
         Guid userId, string role, string? status, int? queryDeptId, DateTime? fromDate, DateTime? toDate)
     {
         Guid? filterUserId = null;
@@ -81,7 +71,7 @@ public class PurchaseRequestService : IPurchaseRequestService
         }
         else if (role == "Manager")
         {
-            int managerDeptId = (int)(await _userRepo.GetDepartmentIdByIdAsync(userId))!;
+            int managerDeptId = (int)(await _userRepo.GetDepartmentByIdAsync(userId))!;
             filterDeptId = managerDeptId;
         }
 
@@ -89,163 +79,160 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         if (!string.IsNullOrWhiteSpace(status))
         {
-            if (!Enum.TryParse<PurchaseRequestStatus>(status, ignoreCase: true, out var statusCode))
-            {
-                return ServiceResult<ICollection<PurchaseRequest>>.LogFailure(
-                    $"Invalid status code. Valid options are: {string.Join(", ", Enum.GetNames(typeof(PurchaseRequestStatus)))}");
-            }
-
-            parsedStatus = statusCode;
+           var convertedStatus = EnumHelper.ConvertStringToEnum<PurchaseRequestStatus>(status,
+               $"Invalid status code. Valid options are: {string.Join(", ", Enum.GetNames(typeof(PurchaseRequestStatus)))}");
+        
+           if (!convertedStatus.Success)
+           {
+               return ServiceResult<ICollection<PurchaseRequestResponse>>.LogFailure(convertedStatus.Message);
+           }
+            parsedStatus = convertedStatus.Data;
         }
 
         var results =
             await _requestRepo.GetFilteredRequestsAsync(filterUserId, filterDeptId, parsedStatus, fromDate, toDate);
-        return ServiceResult<ICollection<PurchaseRequest>>.LogSuccess(results);
+        
+        var responseDtos = results.Select(r => r.ToResponse()).ToList();
+        return ServiceResult<ICollection<PurchaseRequestResponse>>.LogSuccess(responseDtos);
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> EditRequestAsync(Guid id, UpdatePurchaseRequestDto dto,
+    public async Task<ServiceResult<PurchaseRequestResponse>> EditRequestAsync(Guid id, UpdatePurchaseRequestDto dto,
         Guid userId)
     {
-        var request = await _requestRepo.GetPurchaseRequestByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequest>.LogFailure("Purchase request not found.");
+        var request = await _requestRepo.GetByIdAsync(id);
+        if (request == null) return ServiceResult<PurchaseRequestResponse>.LogFailure("Purchase request not found.");
         if (request.RequestedById != userId)
-            return ServiceResult<PurchaseRequest>.LogFailure("Access Denied: You do not own this request.");
+            return ServiceResult<PurchaseRequestResponse>.LogFailure("Access Denied: You do not own this request.");
         if (request.Status != PurchaseRequestStatus.Draft)
-            return ServiceResult<PurchaseRequest>.LogFailure("Only requests in DRAFT status can be modified.");
+            return ServiceResult<PurchaseRequestResponse>.LogFailure("Only requests in DRAFT status can be modified.");
 
         decimal totalPrice = dto.Quantity * dto.UnitPrice;
         if (totalPrice > 50000 && string.IsNullOrWhiteSpace(dto.Description))
         {
-            return ServiceResult<PurchaseRequest>.LogFailure(
+            return ServiceResult<PurchaseRequestResponse>.LogFailure(
                 "A justification description is required for requests exceeding 50,000 SAR.");
         }
 
-        request.Title = dto.Title;
-        request.CategoryId = dto.CategoryId;
-        request.Quantity = dto.Quantity;
-        request.UnitPrice = dto.UnitPrice;
-        request.UrgencyLevel = dto.UrgencyLevel;
-        request.Description = dto.Description;
-        request.UpdatedAt = DateTime.UtcNow;
+        request = request.UpdatePurchaseRequest(dto);
 
-        await _requestRepo.UpdatePurchaseRequestAsync(request);
+        await _requestRepo.UpdateAsync(request);
         await _requestRepo.SaveChangesAsync();
-        return ServiceResult<PurchaseRequest>.LogSuccess(request);
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(request.ToResponse());
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> SubmitRequestAsync(Guid id, Guid userId)
+    public async Task<ServiceResult<PurchaseRequestResponse>> SubmitRequestAsync(Guid id, Guid userId)
     {
-        var request = await _requestRepo.GetPurchaseRequestByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequest>.LogFailure("Purchase request not found.");
-        if (request.RequestedById != userId) return ServiceResult<PurchaseRequest>.LogFailure("Access Denied.");
+        var request = await _requestRepo.GetByIdAsync(id);
+        if (request == null) return ServiceResult<PurchaseRequestResponse>.LogFailure("Purchase request not found.");
+        if (request.RequestedById != userId) return ServiceResult<PurchaseRequestResponse>.LogFailure("Access Denied.");
         if (request.Status != PurchaseRequestStatus.Draft)
-            return ServiceResult<PurchaseRequest>.LogFailure("Only DRAFT requests can be submitted.");
+            return ServiceResult<PurchaseRequestResponse>.LogFailure("Only DRAFT requests can be submitted.");
 
         request.Status = PurchaseRequestStatus.Pending_Manager;
         request.UpdatedAt = DateTime.UtcNow;
 
-        await _requestRepo.UpdatePurchaseRequestAsync(request);
+        await _requestRepo.UpdateAsync(request);
         await _requestRepo.SaveChangesAsync();
-        return ServiceResult<PurchaseRequest>.LogSuccess(request);
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(request.ToResponse());
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> CancelRequestAsync(Guid id, Guid userId)
+    public async Task<ServiceResult<PurchaseRequestResponse>> CancelRequestAsync(Guid id, Guid userId)
     {
-        var request = await _requestRepo.GetPurchaseRequestByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequest>.LogFailure("Purchase request not found.");
-        if (request.RequestedById != userId) return ServiceResult<PurchaseRequest>.LogFailure("Access Denied.");
+        var request = await _requestRepo.GetByIdAsync(id);
+        if (request == null) return ServiceResult<PurchaseRequestResponse>.LogFailure("Purchase request not found.");
+        if (request.RequestedById != userId) return ServiceResult<PurchaseRequestResponse>.LogFailure("Access Denied.");
 
         if (request.Status != PurchaseRequestStatus.Draft && request.Status != PurchaseRequestStatus.Pending_Manager)
         {
-            return ServiceResult<PurchaseRequest>.LogFailure(
+            return ServiceResult<PurchaseRequestResponse>.LogFailure(
                 "Requests can only be cancelled during DRAFT or PENDING_MANAGER states.");
         }
 
         request.Status = PurchaseRequestStatus.Cancelled;
         request.UpdatedAt = DateTime.UtcNow;
 
-        await _requestRepo.UpdatePurchaseRequestAsync(request);
+        await _requestRepo.UpdateAsync(request);
         await _requestRepo.SaveChangesAsync();
-        return ServiceResult<PurchaseRequest>.LogSuccess(request);
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(request.ToResponse());
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> ManagerApproveAsync(Guid id, ManagerReviewDto dto,
+    public async Task<ServiceResult<PurchaseRequestResponse>> ManagerApproveAsync(Guid id, ManagerReviewDto dto,
         Guid managerUserId)
     {
-        var request = await _requestRepo.GetPurchaseRequestByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequest>.LogFailure("Purchase request not found.");
+        var request = await _requestRepo.GetByIdAsync(id);
+        if (request == null) return ServiceResult<PurchaseRequestResponse>.LogFailure("Purchase request not found.");
         if (request.Status != PurchaseRequestStatus.Pending_Manager)
-            return ServiceResult<PurchaseRequest>.LogFailure("Request is not waiting for manager review.");
+            return ServiceResult<PurchaseRequestResponse>.LogFailure("Request is not waiting for manager review.");
 
         string? deptError = await ValidateAuthorityDepartmentAsync(request.DepartmentId, managerUserId);
-        if (deptError != null) return ServiceResult<PurchaseRequest>.LogFailure(deptError);
+        if (deptError != null) return ServiceResult<PurchaseRequestResponse>.LogFailure(deptError);
 
         request.Status = PurchaseRequestStatus.Pending_Finance;
         request.ManagerNote = dto.Note;
         request.UpdatedAt = DateTime.UtcNow;
 
-        await _requestRepo.UpdatePurchaseRequestAsync(request);
+        await _requestRepo.UpdateAsync(request);
         await _requestRepo.SaveChangesAsync();
-        return ServiceResult<PurchaseRequest>.LogSuccess(request);
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(request.ToResponse());
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> ManagerRejectAsync(Guid id, ManagerRejectDto dto,
+    public async Task<ServiceResult<PurchaseRequestResponse>> ManagerRejectAsync(Guid id, ManagerRejectDto dto,
         Guid managerUserId)
     {
-        var request = await _requestRepo.GetPurchaseRequestByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequest>.LogFailure("Purchase request not found.");
+        var request = await _requestRepo.GetByIdAsync(id);
+        if (request == null) return ServiceResult<PurchaseRequestResponse>.LogFailure("Purchase request not found.");
         if (request.Status != PurchaseRequestStatus.Pending_Manager)
-            return ServiceResult<PurchaseRequest>.LogFailure("Request is not waiting for manager review.");
-    
+            return ServiceResult<PurchaseRequestResponse>.LogFailure("Request is not waiting for manager review.");
+
         string? deptError = await ValidateAuthorityDepartmentAsync(request.DepartmentId, managerUserId);
-        if (deptError != null) return ServiceResult<PurchaseRequest>.LogFailure(deptError);
-        
+        if (deptError != null) return ServiceResult<PurchaseRequestResponse>.LogFailure(deptError);
+
         request.Status = PurchaseRequestStatus.Rejected;
         request.ManagerNote = dto.Note;
         request.UpdatedAt = DateTime.UtcNow;
 
-        await _requestRepo.UpdatePurchaseRequestAsync(request);
+        await _requestRepo.UpdateAsync(request);
         await _requestRepo.SaveChangesAsync();
-        return ServiceResult<PurchaseRequest>.LogSuccess(request);
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(request.ToResponse());
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> FinanceApproveAsync(Guid id, FinanceApproveDto dto)
+    public async Task<ServiceResult<PurchaseRequestResponse>> FinanceApproveAsync(Guid id, FinanceApproveDto dto)
     {
-        var request = await _requestRepo.GetPurchaseRequestByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequest>.LogFailure("Purchase request not found.");
+        var request = await _requestRepo.GetByIdAsync(id);
+        if (request == null) return ServiceResult<PurchaseRequestResponse>.LogFailure("Purchase request not found.");
         if (request.Status != PurchaseRequestStatus.Pending_Finance)
-            return ServiceResult<PurchaseRequest>.LogFailure("Request is not waiting for final finance review.");
-        
+            return ServiceResult<PurchaseRequestResponse>.LogFailure("Request is not waiting for final finance review.");
+
         request.Status = PurchaseRequestStatus.Approved;
         request.PurchaseOrderNumber = dto.PurchaseOrderNumber;
         request.FinanceNote = dto.Note;
         request.UpdatedAt = DateTime.UtcNow;
 
-        await _requestRepo.UpdatePurchaseRequestAsync(request);
+        await _requestRepo.UpdateAsync(request);
         await _requestRepo.SaveChangesAsync();
-        return ServiceResult<PurchaseRequest>.LogSuccess(request);
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(request.ToResponse());
     }
 
-    public async Task<ServiceResult<PurchaseRequest>> FinanceRejectAsync(Guid id, FinanceRejectDto dto)
+    public async Task<ServiceResult<PurchaseRequestResponse>> FinanceRejectAsync(Guid id, FinanceRejectDto dto)
     {
-        var request = await _requestRepo.GetPurchaseRequestByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequest>.LogFailure("Purchase request not found.");
+        var request = await _requestRepo.GetByIdAsync(id);
+        if (request == null) return ServiceResult<PurchaseRequestResponse>.LogFailure("Purchase request not found.");
         if (request.Status != PurchaseRequestStatus.Pending_Finance)
-            return ServiceResult<PurchaseRequest>.LogFailure("Request is not waiting for finance review.");
+            return ServiceResult<PurchaseRequestResponse>.LogFailure("Request is not waiting for finance review.");
 
         request.Status = PurchaseRequestStatus.Rejected;
         request.FinanceNote = dto.Note;
         request.UpdatedAt = DateTime.UtcNow;
 
-        await _requestRepo.UpdatePurchaseRequestAsync(request);
+        await _requestRepo.UpdateAsync(request);
         await _requestRepo.SaveChangesAsync();
-        return ServiceResult<PurchaseRequest>.LogSuccess(request);
+        return ServiceResult<PurchaseRequestResponse>.LogSuccess(request.ToResponse());
     }
-    
-    private async Task<string?> ValidateAuthorityDepartmentAsync(int requestDeptId, Guid UserId)
+
+    private async Task<string?> ValidateAuthorityDepartmentAsync(int requestDeptId, Guid userId)
     {
-        var departmentIdResult = await _userRepo.GetDepartmentIdByIdAsync(UserId);
-    
+        var departmentIdResult = await _userRepo.GetDepartmentByIdAsync(userId);
+
         if (departmentIdResult == null)
         {
             return "Access Denied: Manager department identity profile could not be found.";
@@ -255,9 +242,10 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         if (requestDeptId != userDeptId)
         {
-            return "Access Denied: Managers are only authorized to review purchase requests within their own department.";
+            return
+                "Access Denied: Managers are only authorized to review purchase requests within their own department.";
         }
 
-        return null; // Vector is clean, no validation errors!
+        return null;
     }
 }

@@ -13,10 +13,10 @@ public class Notification
     public bool IsRead { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    // Relationships
     public Guid  UserId { get; set; }
-    public User User { get; set; } = null!;
-
     public Guid? RelatedRequestId { get; set; }
+    
+    // Relationships
+    public User User { get; set; } = null!;
     public PurchaseRequest? RelatedRequest { get; set; }
 }

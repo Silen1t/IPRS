@@ -1,5 +1,5 @@
 ﻿using IPRS.Server.DTOs;
-using IPRS.Server.Services;
+using IPRS.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,9 +22,9 @@ public class UsersController : ControllerBase
         [FromQuery] bool? isActive)
     {
         var result = await _userService.GetAllUsersAsync(role, departmentId, isActive);
-            
+
         if (!result.Success) return BadRequest(result.Message);
-        
+
         return Ok(result.Data);
     }
 
@@ -35,7 +35,7 @@ public class UsersController : ControllerBase
         {
             var createdUserDto = await _userService.RegisterUserAsync(request);
             if (!createdUserDto.Success) return BadRequest(createdUserDto.Message);
-            return CreatedAtAction(nameof(GetById), new { Id = createdUserDto.Data!.Id }, createdUserDto);
+            return CreatedAtAction(nameof(GetById), new { createdUserDto.Data!.Id }, createdUserDto);
         }
         catch (Exception e)
         {
@@ -51,13 +51,22 @@ public class UsersController : ControllerBase
         return Ok(userDto);
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateRequest request)
+    {
+        var res = await _userService.UpdateUserAsync(id, request);
+
+        if (!res.Success) return BadRequest(res.Message);
+
+        return Ok(res.Data);
+    }
 
     [HttpPatch("{id}/deactivate")]
     public async Task<IActionResult> Deactivate(Guid id)
     {
         return await SetUserActiveStatusAsync(id, false);
     }
-    
+
     [HttpPatch("{id}/activate")]
     public async Task<IActionResult> Activate(Guid id)
     {

@@ -1,7 +1,8 @@
 ﻿using System.Security.Claims;
 using IPRS.Server.Common;
 using IPRS.Server.DTOs;
-using IPRS.Server.Services;
+using IPRS.Server.Extensions;
+using IPRS.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +10,10 @@ namespace IPRS.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController : BaseApiController
 {
     private readonly IAuthService _authService;
+
     public AuthController(IAuthService authService)
     {
         _authService = authService;
@@ -20,35 +22,28 @@ public class AuthController : ControllerBase
     [HttpPost("login/email")]
     public async Task<IActionResult> Login([FromBody] LoginEmailRequestDto request)
     {
-       var result = await _authService.LoginByEmailAsync(request);
-       if (!result.Success) return Unauthorized(result.Message);
-       
-       return Ok(result.Data);
+        var result = await _authService.LoginByEmailAsync(request);
+        if (!result.Success) return Unauthorized(result.Message);
+
+        return Ok(result.Data);
     }
-    
+
     [HttpPost("login/employeeid")]
     public async Task<IActionResult> Login([FromBody] LoginEmployeeIdRequestDto request)
     {
         var result = await _authService.LoginByEmployeeIdAsync(request);
         if (!result.Success) return Unauthorized(result.Message);
-       
+
         return Ok(result.Data);
     }
-    
+
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
-        {
-            return Unauthorized("Invalid or missing user identification token.");
-        }
+        ServiceResult<UserProfileDto> result = await _authService.GetProfileAsync(CurrentUserId);
         
-        ServiceResult<UserProfileDto> result = await _authService.GetProfileAsync(userId);
-        if(!result.Success) return NotFound(result.Message);
+        if (!result.Success) return NotFound(result.Message);
         return Ok(result.Data);
     }
-    
 }

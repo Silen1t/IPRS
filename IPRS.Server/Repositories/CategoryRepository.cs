@@ -1,20 +1,21 @@
 ﻿using IPRS.Server.Models;
 using Microsoft.EntityFrameworkCore;
+using IPRS.Server.Repositories.Interfaces;
 
 namespace IPRS.Server.Repositories;
 
-public class CategoryRepository : ICategoryRepository
+public class CategoryRepository : BaseRepository, ICategoryRepository
 {
-    private readonly AppDbContext _context;
-    
-    public CategoryRepository(AppDbContext context)
+    public CategoryRepository(AppDbContext context) : base(context)
     {
-        _context = context;
+        
     }
-    
+
     public async Task<IEnumerable<Category>> GetAllActiveAsync()
     {
-       return await _context.Categories.Where(c => c.IsActive).ToListAsync();
+        return await _context.Categories.Where(c => c.IsActive)
+            .Include(c => c.PurchaseRequests)
+            .ToListAsync();
     }
 
     public async Task<Category?> GetByIdAsync(int id)
@@ -30,10 +31,5 @@ public class CategoryRepository : ICategoryRepository
     public async Task AddAsync(Category category)
     {
         await _context.Categories.AddAsync(category);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
     }
 }

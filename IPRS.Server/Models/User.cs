@@ -21,6 +21,8 @@ public class User
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
+    // Relationships
+    
     public Department? Department { get; set; }
     public Department? ManagedDepartment { get; set; } 
     

@@ -1,7 +1,9 @@
 using System.Text;
 using IPRS.Server;
 using IPRS.Server.Repositories;
+using IPRS.Server.Repositories.Interfaces;
 using IPRS.Server.Services;
+using IPRS.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -30,19 +32,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-
-builder.Services.AddScoped<IAuthService, AuthService>();
-
-builder.Services.AddScoped<IPurchaseRequestRepository, PurchaseRequestRepository>();
-builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
+builder.Services.AddApplicationServices();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -50,8 +49,17 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 var app = builder.Build();
 
+app.UseCors("AllowFrontend");
 app.UseDefaultFiles();
 app.MapStaticAssets();
 
@@ -64,7 +72,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-app.UseAuthorization();  
+app.UseAuthorization();
 
 app.MapControllers();
 

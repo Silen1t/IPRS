@@ -1,7 +1,7 @@
 ﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
 
-namespace IPRS.Server.Services;
+namespace IPRS.Server.Services.Interfaces;
 
 public interface IAuthService
 {

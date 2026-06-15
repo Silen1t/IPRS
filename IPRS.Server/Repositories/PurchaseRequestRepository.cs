@@ -1,23 +1,22 @@
 ﻿using IPRS.Server.Models;
 using Microsoft.EntityFrameworkCore;
+using IPRS.Server.Repositories.Interfaces;
 
 namespace IPRS.Server.Repositories;
 
-public class PurchaseRequestRepository : IPurchaseRequestRepository
+public class PurchaseRequestRepository :BaseRepository,  IPurchaseRequestRepository
 {
-    private readonly AppDbContext _context;
-
-    public PurchaseRequestRepository(AppDbContext context)
+    public PurchaseRequestRepository(AppDbContext context) : base(context)
     {
-        _context = context;
+        
     }
 
-    public async Task CreatePurchaseRequestAsync(PurchaseRequest purchaseRequest)
+    public async Task CreateAsync(PurchaseRequest purchaseRequest)
     {
         await _context.PurchaseRequests.AddAsync(purchaseRequest);
     }
 
-    public async Task<PurchaseRequest?> GetPurchaseRequestByIdAsync(Guid id)
+    public async Task<PurchaseRequest?> GetByIdAsync(Guid id)
     {
         return await _context.PurchaseRequests
             .Include(p => p.Category)
@@ -74,14 +73,9 @@ public class PurchaseRequestRepository : IPurchaseRequestRepository
             .ToListAsync();
     }
 
-    public async Task UpdatePurchaseRequestAsync(PurchaseRequest purchaseRequest)
+    public async Task UpdateAsync(PurchaseRequest purchaseRequest)
     {
         _context.PurchaseRequests.Update(purchaseRequest);
-        await Task.CompletedTask; // Keeps method purely async
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
+        await Task.CompletedTask;
     }
 }

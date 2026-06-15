@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using IPRS.Server.DTOs;
-using IPRS.Server.Services;
+using IPRS.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +9,7 @@ namespace IPRS.Server.Controllers;
 [ApiController]
 [Route("api/requests")] // 🎯 Section 7: Base URL route set exactly to /api/requests
 [Authorize]
-public class PurchaseRequestController : ControllerBase
+public class PurchaseRequestController : BaseApiController
 {
     private readonly IPurchaseRequestService _requestService;
 
@@ -33,11 +33,11 @@ public class PurchaseRequestController : ControllerBase
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
         var result = await _requestService.GetFilteredRequestsForUserAsync(
-            identity.UserId, 
-            identity.Role, 
-            status, 
-            departmentId, 
-            from, 
+            identity.UserId,
+            identity.Role,
+            status,
+            departmentId,
+            from,
             to
         );
 
@@ -67,7 +67,7 @@ public class PurchaseRequestController : ControllerBase
     /// Access: Employee. Create a new request (status = DRAFT).
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Employee")] // 🔒 Restricted to Employee role
+    [Authorize(Roles = "Employee")]
     public async Task<IActionResult> Create([FromBody] CreatePurchaseRequestDto dto)
     {
         var identity = GetUserIdentity();
@@ -135,7 +135,7 @@ public class PurchaseRequestController : ControllerBase
     /// Access: Manager. Approve → PENDING_FINANCE. Body: { note?: string }.
     /// </summary>
     [HttpPost("{id:guid}/manager-approve")]
-    [Authorize(Roles = "Manager")] // 🔒 Restricted to Manager role
+    [Authorize(Roles = "Manager")]
     public async Task<IActionResult> ManagerApprove(Guid id, [FromBody] ManagerReviewDto dto)
     {
         var identity = GetUserIdentity();
@@ -190,19 +190,5 @@ public class PurchaseRequestController : ControllerBase
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
-    }
-
-    private (bool IsSuccess, Guid UserId, string Role, string? Error) GetUserIdentity()
-    {
-        string? idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        string? roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        if (string.IsNullOrWhiteSpace(idClaim) || !Guid.TryParse(idClaim, out Guid parsedGuid))
-            return (false, Guid.Empty, string.Empty, "Missing or corrupt identification token.");
-
-        if (string.IsNullOrWhiteSpace(roleClaim))
-            return (false, Guid.Empty, string.Empty, "Missing authorization permissions role.");
-
-        return (true, parsedGuid, roleClaim, null);
     }
 }

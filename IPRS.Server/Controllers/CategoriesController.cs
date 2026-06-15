@@ -1,7 +1,7 @@
 ﻿using IPRS.Server.DTOs;
-using IPRS.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Controllers;
 
@@ -31,7 +31,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
     {
-        var result = await _categoryService.CreateAsync(dto);
+        var result = await _categoryService.CreateCategoryAsync(dto);
         if (!result.Success) return BadRequest(result.Message);
 
         return CreatedAtAction(nameof(GetActive), new { id = result.Data!.Id }, result.Data);
@@ -42,7 +42,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
     {
-        var result = await _categoryService.UpdateAsync(id, dto);
+        var result = await _categoryService.UpdateCategoryAsync(id, dto);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);

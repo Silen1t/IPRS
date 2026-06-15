@@ -1,13 +1,12 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using IPRS.Server.Common;
 using IPRS.Server.DTOs;
 using IPRS.Server.Models;
-using IPRS.Server.Repositories;
-using Microsoft.AspNetCore.Authentication;
+using IPRS.Server.Repositories.Interfaces;
 using Microsoft.IdentityModel.Tokens;
+using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 

@@ -1,15 +1,15 @@
 ﻿using IPRS.Server.Models;
 using Microsoft.EntityFrameworkCore;
+using IPRS.Server.Repositories.Interfaces;
+
 
 namespace IPRS.Server.Repositories;
 
-public class DepartmentRepository : IDepartmentRepository
+public class DepartmentRepository : BaseRepository, IDepartmentRepository
 {
-    private readonly AppDbContext _context;
-
-    public DepartmentRepository(AppDbContext context)
+    public DepartmentRepository(AppDbContext context) : base(context)
     {
-        _context = context;
+        
     }
 
     public async Task<Department?> GetByIdAsync(int id)
@@ -25,10 +25,5 @@ public class DepartmentRepository : IDepartmentRepository
     public async Task AddAsync(Department department)
     {
         await  _context.Departments.AddAsync(department);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
     }
 }

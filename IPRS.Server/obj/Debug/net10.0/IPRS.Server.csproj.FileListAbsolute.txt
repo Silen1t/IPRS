@@ -258,3 +258,4 @@ M:\Documents\NativeCode_Projects\C_Sharp_Projects\IPRS\IPRS.Server\bin\Debug\net
 M:\Documents\NativeCode_Projects\C_Sharp_Projects\IPRS\IPRS.Server\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 M:\Documents\NativeCode_Projects\C_Sharp_Projects\IPRS\IPRS.Server\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
 M:\Documents\NativeCode_Projects\C_Sharp_Projects\IPRS\IPRS.Server\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
+M:\Documents\NativeCode_Projects\C_Sharp_Projects\IPRS\IPRS.Server\obj\Debug\net10.0\IPRS.Server.sourcelink.json
