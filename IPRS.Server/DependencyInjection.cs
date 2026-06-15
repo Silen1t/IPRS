@@ -14,6 +14,8 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IPurchaseRequestRepository, PurchaseRequestRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
 
         // Services
         services.AddScoped<IUserService, UserService>();
@@ -21,6 +23,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IDepartmentService, DepartmentService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
     }

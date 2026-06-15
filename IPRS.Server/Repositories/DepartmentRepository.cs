@@ -17,6 +17,12 @@ public class DepartmentRepository : BaseRepository, IDepartmentRepository
         return await Context.Departments.FirstOrDefaultAsync(d => d.Id == id);
     }
 
+    public async Task<ICollection<Department>> GetAll()
+    {
+        return await Context.Departments.ToArrayAsync();
+    }
+
+
     public async Task<bool> NameExistsAsync(string name)
     {
         return await Context.Departments.AnyAsync(c => c.Name == name);

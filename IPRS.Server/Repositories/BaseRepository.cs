@@ -22,4 +22,11 @@ public class BaseRepository : IBaseRepository
         var entity = await Context.Set<T>().FindAsync(id);
         return entity != null;
     }
+
+    public async Task<bool> ExistAsync<T>(int id) where T : class
+    {
+        // Dynamically looks up the entity type by its primary key
+        var entity = await Context.Set<T>().FindAsync(id);
+        return entity != null;
+    }
 }

@@ -8,6 +8,6 @@ public interface IUserService
     Task<ServiceResult<UserResponseDto>> RegisterUserAsync(CreateUserDto dto);
     Task<UserResponseDto?> GetUserByIdAsync(Guid id);
     Task<ServiceResult<ICollection<UserResponseDto>>> GetAllUsersAsync(string? role, int? departmentId, bool? isActive);
-    Task<ServiceResult<UserResponseDto>> UpdateUserAsync(Guid id, UserUpdateDto dto);
+    Task<ServiceResult<UserResponseDto>> UpdateUserAsync(Guid id, UpdateUserDto dto);
     Task<ServiceResult<bool>> SetUserActiveStatusAsync(Guid id, bool isActive);
 }

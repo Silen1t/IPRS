@@ -34,7 +34,7 @@ public class UserService : IUserService
             return ServiceResult<UserResponseDto>.LogFailure(convertedRole.Message);
         }
 
-        var result = dto.CreateUser();
+        var result = dto.ToEntity();
         if (!result.Success) return ServiceResult<UserResponseDto>.LogFailure(result.Message);
         
         User newUser = result.Data!;
@@ -94,7 +94,7 @@ public class UserService : IUserService
         return ServiceResult<ICollection<UserResponseDto>>.LogSuccess(users);
     }
 
-    public async Task<ServiceResult<UserResponseDto>> UpdateUserAsync(Guid id, UserUpdateDto dto)
+    public async Task<ServiceResult<UserResponseDto>> UpdateUserAsync(Guid id, UpdateUserDto dto)
     {
         User? user = await _userRepo.GetByIdAsync(id);
         if (user == null) return ServiceResult<UserResponseDto>.LogFailure("User not found.");

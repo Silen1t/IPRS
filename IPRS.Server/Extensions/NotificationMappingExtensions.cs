@@ -11,7 +11,7 @@ public static class NotificationMappingExtensions
             notification.IsRead, notification.CreatedAt);
     }
 
-    public static Notification CreateNotification(this CreateNotificationDto request)
+    public static Notification ToEntity(this CreateNotificationDto request)
     {
         return new Notification()
         {

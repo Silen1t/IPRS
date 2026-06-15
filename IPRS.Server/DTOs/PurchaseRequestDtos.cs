@@ -25,7 +25,7 @@ public record UpdatePurchaseRequestDto(
     [StringLength(1000)] string? Description
 );
 
-public record PurchaseRequestResponse(
+public record PurchaseRequestResponseDto(
     Guid Id,
     string RequestNumber,
     string Title,

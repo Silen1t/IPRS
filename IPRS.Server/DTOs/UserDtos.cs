@@ -10,9 +10,9 @@ public record UserResponseDto(
     string Role,
     int? DepartmentId,
     bool IsActive,
-    DateTime createdAt);
+    DateTime CreatedAt);
 
-public record UserUpdateDto(string? FullName, string? Role, int? DepartmentId);
+public record UpdateUserDto(string? FullName, string? Role, int? DepartmentId);
 
 public record UserSummaryResponse(
     Guid Id,

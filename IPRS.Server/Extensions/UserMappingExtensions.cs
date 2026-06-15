@@ -21,7 +21,7 @@ public static class UserMappingExtensions
         );
     }
 
-    public static ServiceResult<User?> CreateUser(this CreateUserDto dto)
+    public static ServiceResult<User?> ToEntity(this CreateUserDto dto)
     {
         var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
             dto.Role

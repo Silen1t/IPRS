@@ -54,7 +54,7 @@ public class NotificationService : INotificationService
         if (!await _userRepo.ExistAsync<User>(request.UserId))
             return ServiceResult<Guid>.LogFailure($"Notification recipient user with ID {request.UserId} was not found.");
     
-        var notification = request.CreateNotification();
+        var notification = request.ToEntity();
     
         await _notificationRepo.CreateAsync(notification);
         await _notificationRepo.SaveChangesAsync();

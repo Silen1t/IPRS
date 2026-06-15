@@ -5,9 +5,9 @@ namespace IPRS.Server.Extensions;
 
 public static class PurchaseRequestMappingExtensions
 {
-    public static PurchaseRequestResponse ToResponse(this PurchaseRequest request)
+    public static PurchaseRequestResponseDto ToResponse(this PurchaseRequest request)
     {
-        return new PurchaseRequestResponse(
+        return new PurchaseRequestResponseDto(
             request.Id,
             request.RequestNumber,
             request.Title,
@@ -29,7 +29,7 @@ public static class PurchaseRequestMappingExtensions
         );
     }
 
-    public static PurchaseRequest CreatePurchaseRequest(this CreatePurchaseRequestDto requestDto, string requestNumber,
+    public static PurchaseRequest ToEntity(this CreatePurchaseRequestDto requestDto, string requestNumber,
         Guid requestedById, int userDepartmentId)
     {
         return new PurchaseRequest()

@@ -1,5 +1,6 @@
 using System.Text;
 using IPRS.Server;
+using IPRS.Server.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -63,6 +64,8 @@ var app = builder.Build();
 app.UseCors("AllowFrontend");
 app.UseDefaultFiles();
 app.MapStaticAssets();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
