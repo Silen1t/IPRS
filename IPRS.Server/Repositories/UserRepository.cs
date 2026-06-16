@@ -4,13 +4,8 @@ using IPRS.Server.Repositories.Interfaces;
 
 namespace IPRS.Server.Repositories;
 
-public class UserRepository : BaseRepository, IUserRepository
+public class UserRepository(AppDbContext context) : BaseRepository(context), IUserRepository
 {
-    public UserRepository(AppDbContext context) : base(context)
-    {
-        
-    }
-
     public async Task<User?> GetByIdAsync(Guid id)
     {
         return await Context.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -19,12 +14,12 @@ public class UserRepository : BaseRepository, IUserRepository
     public async Task<int?> GetDepartmentByIdAsync(Guid id)
     {
         User? user = await Context.Users.FirstOrDefaultAsync(u => u.Id == id);
-        return user!.DepartmentId;
+        return user?.DepartmentId;
     }
 
     public async Task<ICollection<User>> GetFilteredAsync(UserRole? role, int? departmentId, bool? isActive)
     {
-        IQueryable<User> query = Context.Users.Include(p => p.CreatedRequests);
+        IQueryable<User> query = Context.Users.AsQueryable();
         if (role.HasValue)
         {
             query = query.Where(u => u.Role == role.Value);
@@ -56,7 +51,6 @@ public class UserRepository : BaseRepository, IUserRepository
     public async Task UpdateAsync(User user)
     {
         Context.Users.Update(user);
-        await Task.CompletedTask;
     }
 
     public async Task<User?> GetByEmployeeIdAsync(string employeeId)
@@ -79,10 +73,5 @@ public class UserRepository : BaseRepository, IUserRepository
     public async Task AddAsync(User user)
     {
         await Context.Users.AddAsync(user);
-    }
-
-    public async Task<bool> Exist(Guid id)
-    {
-        return await Context.Users.AnyAsync(u => u.Id == id);
     }
 }

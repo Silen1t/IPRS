@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "M:\\Documents\\NativeCode_Projects\\C#_Projects\\IPRS\\",
+  "WorkspaceRootPath": "M:\\Documents\\NativeCode_Projects\\C_Sharp_Projects\\IPRS\\",
   "Documents": [],
   "DocumentGroupContainers": [
     {
@@ -14,10 +14,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{93c5e7ad-af06-49e6-a756-b8f3eaca790d}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             }
           ]
         },

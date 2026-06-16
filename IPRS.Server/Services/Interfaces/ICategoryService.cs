@@ -7,6 +7,6 @@ namespace IPRS.Server.Services.Interfaces;
 public interface ICategoryService
 {
     Task<ServiceResult<ICollection<CategoryLookupDto>>> GetAllActiveAsync();
-    Task<ServiceResult<Category>> CreateCategoryAsync(CreateCategoryDto dto);
-    Task<ServiceResult<Category>> UpdateCategoryAsync(int id, UpdateCategoryDto dto);
+    Task<ServiceResult<CategoryLookupDto>> CreateCategoryAsync(CreateCategoryDto dto);
+    Task<ServiceResult<CategoryLookupDto>> UpdateCategoryAsync(int id, UpdateCategoryDto dto);
 }

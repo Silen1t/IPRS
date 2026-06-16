@@ -14,5 +14,5 @@ public interface IPurchaseRequestRepository : IBaseRepository
         DateTime? fromDate,
         DateTime? toDate);
 
-    Task<int> CountByYearAsync(int year);
+    Task<int> GetNextSequenceForYearAsync(int year);
 }

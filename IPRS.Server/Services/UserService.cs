@@ -10,36 +10,20 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
-public class UserService : IUserService
+public class UserService(IUserRepository userRepo) : IUserService
 {
-    private readonly IUserRepository _userRepo;
-
-    public UserService(IUserRepository userRepo)
-    {
-        _userRepo = userRepo;
-    }
-
     public async Task<ServiceResult<UserResponseDto>> RegisterUserAsync(CreateUserDto dto)
     {
-        var existingUser = await _userRepo.GetByEmailAsync(dto.Email.ToLower().Trim());
+        var existingUser = await userRepo.GetByEmailAsync(dto.Email.ToLower().Trim());
         if (existingUser != null) return ServiceResult<UserResponseDto>.LogFailure("Email is already registered.");
 
-        var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
-            dto.Role
-            , "Invalid role"
-            , true);
-
-        if (!convertedRole.Success)
-        {
-            return ServiceResult<UserResponseDto>.LogFailure(convertedRole.Message);
-        }
-
         var result = dto.ToEntity();
-        if (!result.Success) return ServiceResult<UserResponseDto>.LogFailure(result.Message);
         
+        if (!result.Success) return ServiceResult<UserResponseDto>.LogFailure(result.Message);
+
         User newUser = result.Data!;
         string secureHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-        
+
         const int maxRetries = 3;
         for (int attempt = 0; attempt < maxRetries; attempt++)
         {
@@ -47,9 +31,9 @@ public class UserService : IUserService
             {
                 newUser.EmployeeId = GenerateSecure10DigitNumber().ToString();
                 newUser.PasswordHash = secureHash;
-                
-                await _userRepo.AddAsync(newUser);
-                await _userRepo.SaveChangesAsync();
+
+                await userRepo.AddAsync(newUser);
+                await userRepo.SaveChangesAsync();
                 break; // success, exit loop
             }
             catch (DbUpdateException ex) when (IsUniqueViolation(ex))
@@ -64,7 +48,7 @@ public class UserService : IUserService
 
     public async Task<UserResponseDto?> GetUserByIdAsync(Guid id)
     {
-        User? user = await _userRepo.GetByIdAsync(id);
+        User? user = await userRepo.GetByIdAsync(id);
         if (user == null) return null;
 
         return user.ToResponse();
@@ -87,8 +71,8 @@ public class UserService : IUserService
             parsedRole = convertedRole.Data;
         }
 
-        ICollection<User> result = await _userRepo.GetFilteredAsync(parsedRole, departmentId, isActive);
-        
+        ICollection<User> result = await userRepo.GetFilteredAsync(parsedRole, departmentId, isActive);
+
         var users = result.Select(u => u.ToResponse()).ToList();
 
         return ServiceResult<ICollection<UserResponseDto>>.LogSuccess(users);
@@ -96,9 +80,9 @@ public class UserService : IUserService
 
     public async Task<ServiceResult<UserResponseDto>> UpdateUserAsync(Guid id, UpdateUserDto dto)
     {
-        User? user = await _userRepo.GetByIdAsync(id);
+        User? user = await userRepo.GetByIdAsync(id);
         if (user == null) return ServiceResult<UserResponseDto>.LogFailure("User not found.");
-        
+
         if (!string.IsNullOrEmpty(dto.Role))
         {
             var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
@@ -111,27 +95,38 @@ public class UserService : IUserService
                 return ServiceResult<UserResponseDto>.LogFailure(convertedRole.Message);
             }
 
-            user.Role = convertedRole.Data; 
+            user.Role = convertedRole.Data;
         }
 
         if (dto.FullName != null) user.FullName = dto.FullName;
-        if (dto.DepartmentId != null) user.DepartmentId = dto.DepartmentId.Value;
+        if (dto.RemoveDepartment)
+            user.DepartmentId = null;
+        else if (dto.DepartmentId.HasValue)
+            user.DepartmentId = dto.DepartmentId.Value;
 
-        await _userRepo.UpdateAsync(user);
-        await _userRepo.SaveChangesAsync();
+        await userRepo.UpdateAsync(user);
+        await userRepo.SaveChangesAsync();
 
         return ServiceResult<UserResponseDto>.LogSuccess(user.ToResponse());
     }
 
     public async Task<ServiceResult<bool>> SetUserActiveStatusAsync(Guid id, bool isActive)
     {
-        var user = await _userRepo.UpdateActiveStatusAsync(id, isActive);
+        var user = await userRepo.UpdateActiveStatusAsync(id, isActive);
 
         if (user == null)
             return ServiceResult<bool>.LogFailure($"Failed to {(isActive ? "activate" : "deactivate")} user.");
 
-        await _userRepo.SaveChangesAsync();
+        await userRepo.SaveChangesAsync();
         return ServiceResult<bool>.LogSuccess(user.IsActive);
+    }
+
+    public async Task<ServiceResult<int>> CheckUserHasDepartmentAsync(Guid userId)
+    {
+        int? departmentId = await userRepo.GetDepartmentByIdAsync(userId);
+        return departmentId == null
+            ? ServiceResult<int>.LogFailure("User don't have department.")
+            : ServiceResult<int>.LogSuccess(departmentId.Value);
     }
 
     private long GenerateSecure10DigitNumber()

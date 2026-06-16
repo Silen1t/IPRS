@@ -7,29 +7,22 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
-public class CategoryService : ICategoryService
+public class CategoryService(ICategoryRepository categoryRepo) : ICategoryService
 {
-    private readonly ICategoryRepository _categoryRepo;
-
-    public CategoryService(ICategoryRepository categoryRepo)
-    {
-        _categoryRepo = categoryRepo;
-    }
-
     public async Task<ServiceResult<ICollection<CategoryLookupDto>>> GetAllActiveAsync()
     {
-        var categories = await _categoryRepo.GetAllActiveAsync();
+        var categories = await categoryRepo.GetAllActiveAsync();
 
         // 🎯 Map only the required data properties to the DTO
         var dtos = categories.Select(c => c.ToLookUp()).ToArray();
         return ServiceResult<ICollection<CategoryLookupDto>>.LogSuccess(dtos);
     }
 
-    public async Task<ServiceResult<Category>> CreateCategoryAsync(CreateCategoryDto dto)
+    public async Task<ServiceResult<CategoryLookupDto>> CreateCategoryAsync(CreateCategoryDto dto)
     {
-        if (await _categoryRepo.NameExistsAsync(dto.Name))
+        if (await categoryRepo.NameExistsAsync(dto.Name))
         {
-            return ServiceResult<Category>.LogFailure("A category with this name already exists.");
+            return ServiceResult<CategoryLookupDto>.LogFailure("A category with this name already exists.");
         }
 
         Category category = new Category
@@ -37,21 +30,21 @@ public class CategoryService : ICategoryService
             Name = dto.Name
         };
 
-        await _categoryRepo.AddAsync(category);
-        await _categoryRepo.SaveChangesAsync();
+        await categoryRepo.AddAsync(category);
+        await categoryRepo.SaveChangesAsync();
 
-        return ServiceResult<Category>.LogSuccess(category);
+        return ServiceResult<CategoryLookupDto>.LogSuccess(category.ToLookUp());
     }
 
-    public async Task<ServiceResult<Category>> UpdateCategoryAsync(int id, UpdateCategoryDto dto)
+    public async Task<ServiceResult<CategoryLookupDto>> UpdateCategoryAsync(int id, UpdateCategoryDto dto)
     {
-        var category = await _categoryRepo.GetByIdAsync(id);
-        if (category == null) return ServiceResult<Category>.LogFailure("Category not found.");
+        var category = await categoryRepo.GetByIdAsync(id);
+        if (category == null) return ServiceResult<CategoryLookupDto>.LogFailure("Category not found.");
 
         category.Name = dto.Name;
         category.IsActive = dto.IsActive;
 
-        await _categoryRepo.SaveChangesAsync();
-        return ServiceResult<Category>.LogSuccess(category);
+        await categoryRepo.SaveChangesAsync();
+        return ServiceResult<CategoryLookupDto>.LogSuccess(category.ToLookUp());
     }
 }

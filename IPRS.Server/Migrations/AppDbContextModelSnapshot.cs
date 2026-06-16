@@ -203,6 +203,22 @@ namespace IPRS.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("IPRS.Server.Models.RequestNumberSequence", b =>
+                {
+                    b.Property<int>("Year")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Year"));
+
+                    b.Property<int>("LastSequence")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Year");
+
+                    b.ToTable("RequestNumberSequences");
+                });
+
             modelBuilder.Entity("IPRS.Server.Models.User", b =>
                 {
                     b.Property<Guid>("Id")

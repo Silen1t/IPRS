@@ -8,20 +8,13 @@ namespace IPRS.Server.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/categories")]
-public class CategoriesController : ControllerBase
+public class CategoriesController(ICategoryService categoryService) : ControllerBase
 {
-    private readonly ICategoryService _categoryService;
-
-    public CategoriesController(ICategoryService categoryService)
-    {
-        _categoryService = categoryService;
-    }
-
     // GET: api/categories
     [HttpGet]
     public async Task<IActionResult> GetActive()
     {
-        var categories = await _categoryService.GetAllActiveAsync();
+        var categories = await categoryService.GetAllActiveAsync();
         return Ok(categories.Data);
     }
 
@@ -30,7 +23,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
     {
-        var result = await _categoryService.CreateCategoryAsync(dto);
+        var result = await categoryService.CreateCategoryAsync(dto);
         if (!result.Success) return BadRequest(result.Message);
 
         return CreatedAtAction(nameof(GetActive), new { id = result.Data!.Id }, result.Data);
@@ -41,7 +34,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
     {
-        var result = await _categoryService.UpdateCategoryAsync(id, dto);
+        var result = await categoryService.UpdateCategoryAsync(id, dto);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);

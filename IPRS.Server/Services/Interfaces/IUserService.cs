@@ -10,4 +10,5 @@ public interface IUserService
     Task<ServiceResult<ICollection<UserResponseDto>>> GetAllUsersAsync(string? role, int? departmentId, bool? isActive);
     Task<ServiceResult<UserResponseDto>> UpdateUserAsync(Guid id, UpdateUserDto dto);
     Task<ServiceResult<bool>> SetUserActiveStatusAsync(Guid id, bool isActive);
+    Task<ServiceResult<int>> CheckUserHasDepartmentAsync(Guid userId);
 }

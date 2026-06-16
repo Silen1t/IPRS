@@ -10,20 +10,11 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
-public class AuthService : IAuthService
+public class AuthService(IUserRepository userRepository, IConfiguration config) : IAuthService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IConfiguration _config;
-
-    public AuthService(IUserRepository userRepository, IConfiguration config)
-    {
-        _userRepository = userRepository;
-        _config = config;
-    }
-
     public async Task<ServiceResult<AuthResponseDto>> LoginByEmailAsync(LoginEmailDto dto)
     {
-        var user = await _userRepository.GetByEmailAsync(dto.Email.ToLower().Trim());
+        var user = await userRepository.GetByEmailAsync(dto.Email.ToLower().Trim());
         if (user == null || !user.IsActive)
             return ServiceResult<AuthResponseDto>.LogFailure("Invalid email or password");
 
@@ -36,7 +27,7 @@ public class AuthService : IAuthService
 
     public async Task<ServiceResult<AuthResponseDto>> LoginByEmployeeIdAsync(LoginEmployeeIdDto dto)
     {
-        var user = await _userRepository.GetByEmployeeIdAsync(dto.EmployeeId);
+        var user = await userRepository.GetByEmployeeIdAsync(dto.EmployeeId);
         if (user == null || !user.IsActive)
             return ServiceResult<AuthResponseDto>.LogFailure("Invalid employee id or password");
 
@@ -58,7 +49,7 @@ public class AuthService : IAuthService
 
     public async Task<ServiceResult<UserProfileDto>> GetProfileAsync(Guid id)
     {
-        var user = await _userRepository.GetProfileByIdAsync(id);
+        var user = await userRepository.GetProfileByIdAsync(id);
         if (user == null || !user.IsActive)
             return ServiceResult<UserProfileDto>.LogFailure("User profile not found or inactive.");
 
@@ -76,7 +67,7 @@ public class AuthService : IAuthService
 
     private string GenerateJwtToken(User user)
     {
-        var jwtSettings = _config.GetSection("JwtSettings");
+        var jwtSettings = config.GetSection("JwtSettings");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -89,7 +80,7 @@ public class AuthService : IAuthService
         };
 
         var token = new JwtSecurityToken(
-            issuer: jwtSettings["issuer"],
+            issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             expires: DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiryInMinutes"]!)),
             signingCredentials: creds,

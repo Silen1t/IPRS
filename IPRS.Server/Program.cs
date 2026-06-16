@@ -1,5 +1,7 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using IPRS.Server;
+using IPRS.Server.Data;
 using IPRS.Server.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -54,32 +56,60 @@ builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "https://localhost:63257")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    // Per-IP sliding window: 5 attempts per minute
+    options.AddPolicy("auth_login", context =>
+    {
+        string ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetSlidingWindowLimiter(ip,
+            _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                SegmentsPerWindow = 3,
+                QueueLimit = 0 // Reject immediately, never queue
+            });
+    });
+
+    // Return 429 with a meaningful body instead of an empty response
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            """{"success":false,"message":"Too many login attempts. Please wait 1 minute and try again."}""",
+            token);
+    };
+});
+
 var app = builder.Build();
 
-app.UseCors("AllowFrontend");
-app.UseDefaultFiles();
-app.MapStaticAssets();
-
-app.UseMiddleware<GlobalExceptionMiddleware>();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DatabaseSeeder.SeedAsync(context);
 }
 
+app.UseDefaultFiles();
+app.UseCors("AllowFrontend");
+app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseRateLimiter();
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 app.MapControllers();
-
+app.MapStaticAssets();
 app.MapFallbackToFile("/index.html");
+
 
 app.Run();

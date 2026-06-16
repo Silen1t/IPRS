@@ -9,15 +9,8 @@ namespace IPRS.Server.Controllers;
 [ApiController]
 [Route("api/requests")] // 🎯 Section 7: Base URL route set exactly to /api/requests
 [Authorize]
-public class PurchaseRequestController : BaseApiController
+public class PurchaseRequestController(IPurchaseRequestService requestService) : BaseApiController
 {
-    private readonly IPurchaseRequestService _requestService;
-
-    public PurchaseRequestController(IPurchaseRequestService requestService)
-    {
-        _requestService = requestService;
-    }
-
     /// <summary>
     /// GET /api/requests
     /// Returns requests filtered by role. Supports query params: status, departmentId, from, to.
@@ -32,7 +25,7 @@ public class PurchaseRequestController : BaseApiController
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.GetFilteredRequestsForUserAsync(
+        var result = await requestService.GetFilteredRequestsForUserAsync(
             identity.UserId,
             identity.Role,
             status,
@@ -57,7 +50,7 @@ public class PurchaseRequestController : BaseApiController
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _requestService.GetRequestByIdAsync(id);
+        var result = await requestService.GetRequestByIdAsync(id);
         if (!result.Success) return NotFound(result.Message);
         return Ok(result.Data);
     }
@@ -73,7 +66,7 @@ public class PurchaseRequestController : BaseApiController
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.CreateRequestAsync(requestDto, identity.UserId);
+        var result = await requestService.CreateRequestAsync(requestDto, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
@@ -90,7 +83,7 @@ public class PurchaseRequestController : BaseApiController
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.EditRequestAsync(id, requestDto, identity.UserId);
+        var result = await requestService.EditRequestAsync(id, requestDto, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
@@ -107,7 +100,7 @@ public class PurchaseRequestController : BaseApiController
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.SubmitRequestAsync(id, identity.UserId);
+        var result = await requestService.SubmitRequestAsync(id, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
@@ -124,7 +117,7 @@ public class PurchaseRequestController : BaseApiController
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.CancelRequestAsync(id, identity.UserId);
+        var result = await requestService.CancelRequestAsync(id, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
@@ -141,7 +134,7 @@ public class PurchaseRequestController : BaseApiController
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.ManagerApproveAsync(id, dto, identity.UserId);
+        var result = await requestService.ManagerApproveAsync(id, dto, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
@@ -158,7 +151,7 @@ public class PurchaseRequestController : BaseApiController
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await _requestService.ManagerRejectAsync(id, dto, identity.UserId);
+        var result = await requestService.ManagerRejectAsync(id, dto, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
@@ -172,7 +165,7 @@ public class PurchaseRequestController : BaseApiController
     [Authorize(Roles = "Finance")] // 🔒 Restricted to Finance role
     public async Task<IActionResult> FinanceApprove(Guid id, [FromBody] FinanceApproveDto dto)
     {
-        var result = await _requestService.FinanceApproveAsync(id, dto, CurrentUserId);
+        var result = await requestService.FinanceApproveAsync(id, dto, CurrentUserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);
@@ -186,7 +179,7 @@ public class PurchaseRequestController : BaseApiController
     [Authorize(Roles = "Finance")]
     public async Task<IActionResult> FinanceReject(Guid id, [FromBody] FinanceRejectDto dto)
     {
-        var result = await _requestService.FinanceRejectAsync(id, dto, CurrentUserId);
+        var result = await requestService.FinanceRejectAsync(id, dto, CurrentUserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);

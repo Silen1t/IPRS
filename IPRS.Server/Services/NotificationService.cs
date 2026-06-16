@@ -7,23 +7,15 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
-public class NotificationService : INotificationService
+public class NotificationService(INotificationRepository notificationRepo, IUserRepository userRepo)
+    : INotificationService
 {
-    private readonly INotificationRepository _notificationRepo;
-    private readonly IUserRepository _userRepo;
-
-    public NotificationService(INotificationRepository notificationRepo, IUserRepository userRepo)
-    {
-        _notificationRepo = notificationRepo;
-        _userRepo = userRepo;
-    }
-
     public async Task<ServiceResult<ICollection<NotificationResponseDto>>> GetAllNotificationsByUserIdAsync(Guid userId)
     {
-        if (!await _userRepo.ExistAsync<User>(userId))
+        if (!await userRepo.ExistAsync<User>(userId))
             return ServiceResult<ICollection<NotificationResponseDto>>.LogFailure("User not found");
 
-        var notifications = await _notificationRepo.GetAllByUserIdAsync(userId);
+        var notifications = await notificationRepo.GetAllByUserIdAsync(userId);
         var notificationResponses = notifications.Select(n => n.ToResponse()).ToArray();
         return ServiceResult<ICollection<NotificationResponseDto>>.LogSuccess(notificationResponses);
     }
@@ -31,33 +23,33 @@ public class NotificationService : INotificationService
     public async Task<ServiceResult<bool?>> UpdateNotificationReadStatus(Guid id,
         UpdateNotificationReadStatusDto request)
     {
-        var notification = await _notificationRepo.UpdateReadStatus(id, request.IsRead);
+        var notification = await notificationRepo.UpdateReadStatus(id, request.IsRead);
         if (notification == null)
             return ServiceResult<bool?>.LogFailure("Notification not found.");
 
-        await _notificationRepo.SaveChangesAsync();
+        await notificationRepo.SaveChangesAsync();
         return ServiceResult<bool?>.LogSuccess(notification.IsRead, "Notification read status updated.");
     }
 
     public async Task<ServiceResult<bool?>> UpdateAllNotificationReadStatus(Guid userId, bool readStatus)
     {
-        if (!await _userRepo.ExistAsync<User>(userId))
+        if (!await userRepo.ExistAsync<User>(userId))
             return ServiceResult<bool?>.LogFailure("User not found.");
 
-        await _notificationRepo.UpdateAllReadStatus(userId, readStatus);
+        await notificationRepo.UpdateAllReadStatus(userId, readStatus);
 
         return ServiceResult<bool?>.LogSuccess(true);
     }
 
     public async Task<ServiceResult<Guid>> CreateNotificationAsync(CreateNotificationDto request)
     {
-        if (!await _userRepo.ExistAsync<User>(request.UserId))
+        if (!await userRepo.ExistAsync<User>(request.UserId))
             return ServiceResult<Guid>.LogFailure($"Notification recipient user with ID {request.UserId} was not found.");
     
         var notification = request.ToEntity();
     
-        await _notificationRepo.CreateAsync(notification);
-        await _notificationRepo.SaveChangesAsync();
+        await notificationRepo.CreateAsync(notification);
+        await notificationRepo.SaveChangesAsync();
     
         return ServiceResult<Guid>.LogSuccess(notification.Id);
     }

@@ -4,12 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IPRS.Server.Repositories;
 
-public class NotificationRepository : BaseRepository, INotificationRepository
+public class NotificationRepository(AppDbContext context) : BaseRepository(context), INotificationRepository
 {
-    public NotificationRepository(AppDbContext context) : base(context)
-    {
-    }
-
     public async Task<ICollection<Notification>> GetAllByUserIdAsync(Guid userId)
     {
         return await Context.Notifications.Where(n => n.UserId == userId)

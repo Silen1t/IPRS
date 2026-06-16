@@ -7,20 +7,13 @@ namespace IPRS.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DepartmentsController : BaseApiController
+public class DepartmentsController(IDepartmentService departmentService) : BaseApiController
 {
-    private readonly IDepartmentService _departmentService;
-
-    public DepartmentsController(IDepartmentService departmentService)
-    {
-        _departmentService = departmentService;
-    }
-
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetDepartments()
     {
-        var responses = await _departmentService.GetAllDepartmentsAsync();
+        var responses = await departmentService.GetAllDepartmentsAsync();
         if (!responses.Success) return BadRequest(responses.Message);
         return Ok(responses.Data);
     }
@@ -29,7 +22,7 @@ public class DepartmentsController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateDepartment([FromBody] CreateDepartmentDto request)
     {
-        var result = await _departmentService.CreateDepartmentAsync(request);
+        var result = await departmentService.CreateDepartmentAsync(request);
         if (!result.Success) return BadRequest(result.Message);
         return Ok(result.Data);
     }
@@ -38,7 +31,7 @@ public class DepartmentsController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateDepartment(int id, [FromBody] UpdateDepartmentDto request)
     {
-        var result = await _departmentService.UpdateDepartmentByIdAsync(id, request);
+        var result = await departmentService.UpdateDepartmentByIdAsync(id, request);
         if (!result.Success) return BadRequest(result.Message);
         return Ok(result.Data);
     }

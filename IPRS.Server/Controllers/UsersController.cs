@@ -8,20 +8,13 @@ namespace IPRS.Server.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
-public class UsersController : ControllerBase
+public class UsersController(IUserService userService) : ControllerBase
 {
-    private readonly IUserService _userService;
-
-    public UsersController(IUserService userService)
-    {
-        _userService = userService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? role, [FromQuery] int? departmentId,
         [FromQuery] bool? isActive)
     {
-        var result = await _userService.GetAllUsersAsync(role, departmentId, isActive);
+        var result = await userService.GetAllUsersAsync(role, departmentId, isActive);
 
         if (!result.Success) return BadRequest(result.Message);
 
@@ -31,7 +24,7 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {
-        var createdUserDto = await _userService.RegisterUserAsync(dto);
+        var createdUserDto = await userService.RegisterUserAsync(dto);
         if (!createdUserDto.Success) return BadRequest(createdUserDto.Message);
         return CreatedAtAction(nameof(GetById), new { id = createdUserDto.Data!.Id }, createdUserDto);
     }
@@ -39,7 +32,7 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var userDto = await _userService.GetUserByIdAsync(id);
+        var userDto = await userService.GetUserByIdAsync(id);
         if (userDto == null) return NotFound(new { message = "Employee card not found." });
         return Ok(userDto);
     }
@@ -47,7 +40,7 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto dto)
     {
-        var res = await _userService.UpdateUserAsync(id, dto);
+        var res = await userService.UpdateUserAsync(id, dto);
 
         if (!res.Success) return BadRequest(res.Message);
 
@@ -68,7 +61,7 @@ public class UsersController : ControllerBase
 
     private async Task<IActionResult> SetUserActiveStatusAsync(Guid id, bool isActive)
     {
-        var result = await _userService.SetUserActiveStatusAsync(id, isActive);
+        var result = await userService.SetUserActiveStatusAsync(id, isActive);
         if (!result.Success) return BadRequest(result.Message);
         return Ok(result.Data);
     }

@@ -4,13 +4,8 @@ using IPRS.Server.Repositories.Interfaces;
 
 namespace IPRS.Server.Repositories;
 
-public class PurchaseRequestRepository :BaseRepository,  IPurchaseRequestRepository
+public class PurchaseRequestRepository(AppDbContext context) : BaseRepository(context), IPurchaseRequestRepository
 {
-    public PurchaseRequestRepository(AppDbContext context) : base(context)
-    {
-        
-    }
-
     public async Task CreateAsync(PurchaseRequest purchaseRequest)
     {
         await Context.PurchaseRequests.AddAsync(purchaseRequest);
@@ -21,6 +16,8 @@ public class PurchaseRequestRepository :BaseRepository,  IPurchaseRequestReposit
         return await Context.PurchaseRequests
             .Include(p => p.Category)
             .Include(p => p.RequestedBy)
+            .Include(p => p.ManagerActionBy)  
+            .Include(p => p.FinanceActionBy)  
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
@@ -28,7 +25,12 @@ public class PurchaseRequestRepository :BaseRepository,  IPurchaseRequestReposit
         int? targetDepartmentId, PurchaseRequestStatus? status,
         DateTime? fromDate, DateTime? toDate)
     {
-        IQueryable<PurchaseRequest> query = Context.PurchaseRequests.Include(p => p.Category);
+        var query = Context.PurchaseRequests
+            .Include(p => p.Category)
+            .Include(p => p.RequestedBy)
+            .Include(p => p.Department)
+            .AsQueryable();
+
 
         if (targetUserId.HasValue)
         {
@@ -57,11 +59,26 @@ public class PurchaseRequestRepository :BaseRepository,  IPurchaseRequestReposit
 
         return await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
     }
-    
-    
-    public async Task<int> CountByYearAsync(int year)
+
+
+    public async Task<int> GetNextSequenceForYearAsync(int year)
     {
-        return await Context.PurchaseRequests
-            .CountAsync(r => r.CreatedAt.Year == year);
+        // Single atomic PostgreSQL operation:
+        // - If no row exists for this year → inserts with LastSequence = 1
+        // - If row exists → increments LastSequence by 1
+        // - RETURNING immediately gives back the new value
+        // No two concurrent calls can ever receive the same number.
+
+        var result = await Context.Database
+            .SqlQuery<int>($"""
+                                INSERT INTO "RequestNumberSequences" ("Year", "LastSequence")
+                                VALUES ({year}, 1)
+                                ON CONFLICT ("Year") DO UPDATE
+                                SET "LastSequence" = "RequestNumberSequences"."LastSequence" + 1
+                                RETURNING "LastSequence"
+                            """)
+            .FirstAsync();
+
+        return result;
     }
 }

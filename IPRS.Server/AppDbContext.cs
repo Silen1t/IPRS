@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Category> Categories { get; set; }
     public DbSet<PurchaseRequest> PurchaseRequests { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<RequestNumberSequence> RequestNumberSequences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -100,6 +101,11 @@ public class AppDbContext : DbContext
                 .WithMany(p => p.Notifications)
                 .HasForeignKey(n => n.RelatedRequestId)
                 .OnDelete(DeleteBehavior.SetNull); // Keep history if a request is archived/deleted
+        });
+
+        modelBuilder.Entity<RequestNumberSequence>(entity =>
+        {
+            entity.HasKey(e => e.Year);
         });
     }
 }

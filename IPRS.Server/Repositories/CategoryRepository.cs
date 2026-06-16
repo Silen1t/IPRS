@@ -4,13 +4,8 @@ using IPRS.Server.Repositories.Interfaces;
 
 namespace IPRS.Server.Repositories;
 
-public class CategoryRepository : BaseRepository, ICategoryRepository
+public class CategoryRepository(AppDbContext context) : BaseRepository(context), ICategoryRepository
 {
-    public CategoryRepository(AppDbContext context) : base(context)
-    {
-        
-    }
-
     public async Task<IEnumerable<Category>> GetAllActiveAsync()
     {
         return await Context.Categories.Where(c => c.IsActive).ToListAsync();

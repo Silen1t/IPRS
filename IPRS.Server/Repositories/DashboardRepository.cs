@@ -37,11 +37,13 @@ public class DashboardRepository : BaseRepository, IDashboardRepository
 
     public async Task<decimal> GetDepartmentApprovedSpendThisMonthAsync(int departmentId, int month, int year)
     {
+        var startOfMonth = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endOfMonth = startOfMonth.AddMonths(1);
         return await Context.PurchaseRequests
             .Where(r => r.DepartmentId == departmentId &&
                         r.Status == PurchaseRequestStatus.Approved &&
-                        r.CreatedAt.Month == month &&
-                        r.CreatedAt.Year == year)
+                        r.CreatedAt >= startOfMonth &&
+                        r.CreatedAt < endOfMonth)
             .SumAsync(r => r.TotalPrice);
     }
 
@@ -92,7 +94,7 @@ public class DashboardRepository : BaseRepository, IDashboardRepository
         if (!string.IsNullOrWhiteSpace(status))
         {
             var result = EnumHelper.ConvertStringToEnum<PurchaseRequestStatus>(status, "Invalid status", true);
-            if (!result.Success) return null;
+            if (!result.Success) return new List<PurchaseRequest>();
             query = query.Where(r => r.Status == result.Data);
         }
 

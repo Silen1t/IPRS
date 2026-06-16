@@ -1,37 +1,31 @@
-﻿using System.Security.Claims;
-using IPRS.Server.Common;
+﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
-using IPRS.Server.Extensions;
 using IPRS.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace IPRS.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : BaseApiController
+public class AuthController(IAuthService authService) : BaseApiController
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-
     [HttpPost("login/email")]
+    [EnableRateLimiting("auth_login")]
     public async Task<IActionResult> Login([FromBody] LoginEmailDto request)
     {
-        var result = await _authService.LoginByEmailAsync(request);
+        var result = await authService.LoginByEmailAsync(request);
         if (!result.Success) return Unauthorized(result.Message);
 
         return Ok(result.Data);
     }
 
     [HttpPost("login/employeeid")]
+    [EnableRateLimiting("auth_login")]
     public async Task<IActionResult> Login([FromBody] LoginEmployeeIdDto request)
     {
-        var result = await _authService.LoginByEmployeeIdAsync(request);
+        var result = await authService.LoginByEmployeeIdAsync(request);
         if (!result.Success) return Unauthorized(result.Message);
 
         return Ok(result.Data);
@@ -41,7 +35,7 @@ public class AuthController : BaseApiController
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
-        ServiceResult<UserProfileDto> result = await _authService.GetProfileAsync(CurrentUserId);
+        ServiceResult<UserProfileDto> result = await authService.GetProfileAsync(CurrentUserId);
         
         if (!result.Success) return NotFound(result.Message);
         return Ok(result.Data);

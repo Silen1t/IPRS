@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IPRS.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+858bd1ad785b12dc09a10fe6337aedad1c6dbe79")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f7a0c6bc5e260c1b6f380bcdf50ff9f5ab8c7c2d")]
 [assembly: System.Reflection.AssemblyProductAttribute("IPRS.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IPRS.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

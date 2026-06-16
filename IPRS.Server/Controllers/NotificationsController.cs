@@ -10,22 +10,12 @@ namespace IPRS.Server.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class NotificationsController : BaseApiController
+public class NotificationsController(INotificationService notificationService) : BaseApiController
 {
-    private readonly INotificationService _notificationService;
-
-    public NotificationsController(INotificationService notificationService)
-    {
-        _notificationService = notificationService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        Guid userId = userIdClaim.ToGuid("Invalid or missing user identification token.");
-        var notifications = await _notificationService.GetAllNotificationsByUserIdAsync(userId);
+        var notifications = await notificationService.GetAllNotificationsByUserIdAsync(CurrentUserId);
         if (!notifications.Success) return BadRequest(notifications.Message);
         return Ok(notifications.Data);
     }
@@ -34,7 +24,7 @@ public class NotificationsController : BaseApiController
     public async Task<IActionResult> UpdateReadStatusNotification(Guid id,
         [FromBody] UpdateNotificationReadStatusDto request)
     {
-        var status = await _notificationService.UpdateNotificationReadStatus(id, request);
+        var status = await notificationService.UpdateNotificationReadStatus(id, request);
         if (!status.Success) return BadRequest(status.Message);
         return Ok(status.Message);
     }
@@ -42,7 +32,7 @@ public class NotificationsController : BaseApiController
     [HttpPatch("read-all")]
     public async Task<IActionResult> UpdateReadStatusAllNotifications()
     {
-        var status = await _notificationService
+        var status = await notificationService
             .UpdateAllNotificationReadStatus(CurrentUserId, true);
 
         if (!status.Success) return BadRequest(status.Message);

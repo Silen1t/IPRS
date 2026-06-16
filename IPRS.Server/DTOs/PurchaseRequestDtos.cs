@@ -37,7 +37,10 @@ public record PurchaseRequestResponseDto(
     string Status,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    UserSummaryResponse RequestedBy
+    UserSummaryResponse RequestedBy,
+    ApprovalStageDto? ManagerApproval,   
+    ApprovalStageDto? FinanceApproval,   
+    string? PurchaseOrderNumber
 );
 
 public record ManagerReviewDto(
@@ -58,4 +61,10 @@ public record FinanceApproveDto(
 public record FinanceRejectDto(
     [Required(ErrorMessage = "A rejection reason note is strictly required.")]
     string Note
+);
+
+public record ApprovalStageDto(
+    UserSummaryResponse ActionBy,
+    DateTime ActionAt,
+    string? Note
 );
