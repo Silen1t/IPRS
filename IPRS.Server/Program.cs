@@ -2,6 +2,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using IPRS.Server;
 using IPRS.Server.Data;
+using IPRS.Server.Infrastructure;
 using IPRS.Server.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +44,11 @@ builder.Services.AddRouting(options =>
 builder.Services.AddApplicationServices();
 
 // Add services to the container.
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+    {
+        // Enforces "api/" before all controller endpoints automatically
+        options.Conventions.Add(new ApiPrefixConvention("api"));
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler =
@@ -56,7 +61,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:5173", "https://localhost:63257")
+        policy.WithOrigins("https://localhost:63257")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -74,7 +79,7 @@ builder.Services.AddRateLimiter(options =>
                 PermitLimit = 5,
                 Window = TimeSpan.FromMinutes(1),
                 SegmentsPerWindow = 3,
-                QueueLimit = 0 // Reject immediately, never queue
+                QueueLimit = 0
             });
     });
 

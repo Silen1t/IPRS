@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace IPRS.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 [Authorize]
 public class NotificationsController(INotificationService notificationService) : BaseApiController
 {
@@ -21,7 +21,7 @@ public class NotificationsController(INotificationService notificationService) :
     }
 
     [HttpPatch("{id:guid}/read")]
-    public async Task<IActionResult> UpdateReadStatusNotification(Guid id,
+    public async Task<IActionResult> UpdateReadStatus(Guid id,
         [FromBody] UpdateNotificationReadStatusDto request)
     {
         var status = await notificationService.UpdateNotificationReadStatus(id, request);
@@ -30,11 +30,10 @@ public class NotificationsController(INotificationService notificationService) :
     }
 
     [HttpPatch("read-all")]
-    public async Task<IActionResult> UpdateReadStatusAllNotifications()
+    public async Task<IActionResult> UpdateReadStatusAll()
     {
         var status = await notificationService
             .UpdateAllNotificationReadStatus(CurrentUserId, true);
-
         if (!status.Success) return BadRequest(status.Message);
         return Ok(status.Message);
     }

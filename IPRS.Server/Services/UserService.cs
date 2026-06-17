@@ -18,7 +18,7 @@ public class UserService(IUserRepository userRepo) : IUserService
         if (existingUser != null) return ServiceResult<UserResponseDto>.LogFailure("Email is already registered.");
 
         var result = dto.ToEntity();
-        
+
         if (!result.Success) return ServiceResult<UserResponseDto>.LogFailure(result.Message);
 
         User newUser = result.Data!;

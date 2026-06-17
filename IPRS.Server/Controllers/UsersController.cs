@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace IPRS.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 [Authorize(Roles = "Admin")]
-public class UsersController(IUserService userService) : ControllerBase
+public class UsersController(IUserService userService) : BaseApiController
 {
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? role, [FromQuery] int? departmentId,
@@ -20,7 +20,7 @@ public class UsersController(IUserService userService) : ControllerBase
 
         return Ok(result.Data);
     }
-
+    
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {

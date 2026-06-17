@@ -69,16 +69,17 @@ public class PurchaseRequestRepository(AppDbContext context) : BaseRepository(co
         // - RETURNING immediately gives back the new value
         // No two concurrent calls can ever receive the same number.
 
-        var result = await Context.Database
+        var sequenceResults = await Context.Database
             .SqlQuery<int>($"""
                                 INSERT INTO "RequestNumberSequences" ("Year", "LastSequence")
                                 VALUES ({year}, 1)
                                 ON CONFLICT ("Year") DO UPDATE
                                 SET "LastSequence" = "RequestNumberSequences"."LastSequence" + 1
-                                RETURNING "LastSequence"
+                                RETURNING "LastSequence" AS "Value"
                             """)
-            .FirstAsync();
+            .ToListAsync();
 
-        return result;
+        // 2. Extract the solitary calculated sequence integer safely from memory
+        return sequenceResults.First();
     }
 }

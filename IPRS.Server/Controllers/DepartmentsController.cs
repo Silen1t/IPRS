@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace IPRS.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class DepartmentsController(IDepartmentService departmentService) : BaseApiController
 {
     [HttpGet]

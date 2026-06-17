@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using IPRS.Server.DTOs;
+﻿using IPRS.Server.DTOs;
 using IPRS.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace IPRS.Server.Controllers;
 
 [ApiController]
-[Route("api/requests")] // 🎯 Section 7: Base URL route set exactly to /api/requests
+[Route("requests")] 
 [Authorize]
 public class PurchaseRequestController(IPurchaseRequestService requestService) : BaseApiController
 {
@@ -34,7 +33,6 @@ public class PurchaseRequestController(IPurchaseRequestService requestService) :
             to
         );
 
-        // 🎯 Catch the parsing/validation failures logged by your service layer
         if (!result.Success)
         {
             return BadRequest(result.Message);

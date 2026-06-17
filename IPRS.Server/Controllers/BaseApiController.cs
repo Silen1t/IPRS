@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace IPRS.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
 public abstract class BaseApiController : ControllerBase
 {
     protected Guid CurrentUserId => (Guid)User.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToGuid("Invalid token.")!;

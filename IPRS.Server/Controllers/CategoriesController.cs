@@ -7,8 +7,8 @@ namespace IPRS.Server.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/categories")]
-public class CategoriesController(ICategoryService categoryService) : ControllerBase
+[Route("categories")]
+public class CategoriesController(ICategoryService categoryService) : BaseApiController
 {
     // GET: api/categories
     [HttpGet]

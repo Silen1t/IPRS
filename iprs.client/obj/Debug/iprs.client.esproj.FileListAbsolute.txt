@@ -1,2 +1,0 @@
-M:\Documents\NativeCode_Projects\C#_Projects\IPRS\iprs.client\obj\Debug\iprs.client.esproj.CoreCompileInputs.cache
-M:\Documents\NativeCode_Projects\C_Sharp_Projects\IPRS\iprs.client\obj\Debug\iprs.client.esproj.CoreCompileInputs.cache

@@ -1,4 +1,6 @@
-﻿using IPRS.Server.DTOs;
+﻿using IPRS.Server.Common;
+using IPRS.Server.DTOs;
+using IPRS.Server.Helpers;
 using IPRS.Server.Models;
 
 namespace IPRS.Server.Extensions;
@@ -64,10 +66,18 @@ public static class PurchaseRequestMappingExtensions
         );
     }
 
-    public static PurchaseRequest ToEntity(this CreatePurchaseRequestDto requestDto, string requestNumber,
+    public static ServiceResult<PurchaseRequest> ToEntity(this CreatePurchaseRequestDto requestDto,
+        string requestNumber,
         Guid requestedById, int userDepartmentId)
     {
-        return new PurchaseRequest()
+        var urgencyLevel =
+            EnumHelper.ConvertStringToEnum<UrgencyLevel>(requestDto.UrgencyLevel, "Invalid urgency", true);
+        if (!urgencyLevel.Success)
+        {
+            return ServiceResult<PurchaseRequest>.LogFailure(urgencyLevel.Message);
+        }
+
+        var purchaseRequest = new PurchaseRequest()
         {
             Id = Guid.NewGuid(),
             RequestNumber = requestNumber,
@@ -75,13 +85,14 @@ public static class PurchaseRequestMappingExtensions
             CategoryId = requestDto.CategoryId,
             Quantity = requestDto.Quantity,
             UnitPrice = requestDto.UnitPrice,
-            UrgencyLevel = requestDto.UrgencyLevel,
+            UrgencyLevel = urgencyLevel.Data,
             Description = requestDto.Description,
             Status = PurchaseRequestStatus.Draft,
             RequestedById = requestedById,
             DepartmentId = userDepartmentId,
             CreatedAt = DateTime.UtcNow
         };
+        return ServiceResult<PurchaseRequest>.LogSuccess(purchaseRequest);
     }
 
     public static EmployeeDashboardStats ToEmployeeDashboardStats(this ICollection<PurchaseRequestStatus> statuses)

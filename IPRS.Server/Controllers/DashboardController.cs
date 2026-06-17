@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace IPRS.Server.Controllers;
 
 [ApiController]
-[Route("api/")] 
 [Authorize]
 public class DashboardController : BaseApiController
 {

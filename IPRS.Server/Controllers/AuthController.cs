@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace IPRS.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class AuthController(IAuthService authService) : BaseApiController
 {
     [HttpPost("login/email")]

@@ -10,7 +10,7 @@ public record CreatePurchaseRequestDto(
     int Quantity,
     [Required, Range(0.01, double.MaxValue, ErrorMessage = "Unit price must be greater than 0.")]
     decimal UnitPrice,
-    [Required] UrgencyLevel UrgencyLevel,
+    [Required] string UrgencyLevel,
     [StringLength(1000)] string? Description
 );
 

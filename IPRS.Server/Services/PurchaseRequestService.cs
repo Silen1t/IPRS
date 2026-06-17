@@ -13,8 +13,7 @@ public class PurchaseRequestService(
     IUserService userService,
     INotificationService notificationService,
     IDepartmentService departmentService
-)
-    : IPurchaseRequestService
+    )  : IPurchaseRequestService
 {
     public async Task<ServiceResult<PurchaseRequestResponseDto>> CreateRequestAsync(CreatePurchaseRequestDto requestDto,
         Guid userId)
@@ -26,22 +25,31 @@ public class PurchaseRequestService(
                 "A justification description is required for requests exceeding 50,000 SAR.");
         }
 
+        if (!await requestRepo.ExistAsync<Category>(requestDto.CategoryId))
+        {
+            return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Category not found.");
+        }
+
         var userDepartmentId = await userService.CheckUserHasDepartmentAsync(userId);
 
         if (!userDepartmentId.Success)
             return ServiceResult<PurchaseRequestResponseDto>.LogFailure(userDepartmentId.Message);
 
         int currentYear = DateTime.UtcNow.Year;
-        
+
         int nextSeq = await requestRepo.GetNextSequenceForYearAsync(currentYear);
         string requestNumber = $"PR-{currentYear}-{nextSeq:D4}";
-        
-        var purchaseRequest = requestDto.ToEntity(requestNumber, userId, userDepartmentId.Data);
 
-        await requestRepo.CreateAsync(purchaseRequest);
+        var purchaseRequest = requestDto.ToEntity(requestNumber, userId, userDepartmentId.Data);
+        if (!purchaseRequest.Success)
+        {
+            return ServiceResult<PurchaseRequestResponseDto>.LogFailure(purchaseRequest.Message);
+        }
+
+        await requestRepo.CreateAsync(purchaseRequest.Data!);
         await requestRepo.SaveChangesAsync();
 
-        var createdRequest = await requestRepo.GetByIdAsync(purchaseRequest.Id);
+        var createdRequest = await requestRepo.GetByIdAsync(purchaseRequest.Data!.Id);
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(createdRequest!.ToResponse());
     }
 

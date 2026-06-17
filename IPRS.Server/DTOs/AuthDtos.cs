@@ -19,11 +19,3 @@ public record AuthResponseDto(
     string Role
 );
 
-public record UserProfileDto(
-    string EmployeeId,
-    string FullName,
-    string Email,
-    string Role,
-    int? DepartmentId,
-    string? DepartmentName
-);

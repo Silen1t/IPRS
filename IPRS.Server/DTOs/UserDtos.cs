@@ -26,6 +26,15 @@ public record UpdateUserDto(
     bool RemoveDepartment = false
 );
 
+public record UserProfileDto(
+    string EmployeeId,
+    string FullName,
+    string Email,
+    string Role,
+    int? DepartmentId,
+    string? DepartmentName
+);
+
 public record UserSummaryResponse(
     Guid Id,
     string EmployeeId,
