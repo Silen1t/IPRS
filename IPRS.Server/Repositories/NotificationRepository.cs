@@ -17,17 +17,6 @@ public class NotificationRepository(AppDbContext context) : BaseRepository(conte
         return await Context.Notifications.FirstOrDefaultAsync(n => n.Id == notificationId);
     }
 
-    public async Task<Notification?> UpdateReadStatus(Guid notificationId, bool readStatus)
-    {
-        var notification = await Context.Notifications
-            .FirstOrDefaultAsync(n => n.Id == notificationId);
-        
-        if (notification == null) return null;
-    
-        notification.IsRead = readStatus;
-    
-        return notification;
-    }
 
     public async Task UpdateAllReadStatus(Guid userId, bool readStatus)
     {

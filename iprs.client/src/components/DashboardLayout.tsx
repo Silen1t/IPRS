@@ -8,28 +8,23 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/shadcn-ui/components/ui/sidebar';
-import { getAllNotifications } from '@/services/notificationService';
+import { usePurchaseRequestStore } from '@/store/usePurchaseRequestStore';
 
 export default function DashboardLayout() {
-  const { initSignalR, initNotifications } = useNotificationStore();
-  const disconnectSignalR = useNotificationStore(
-    (state) => state.disconnectSignalR
-  );
-  const role = useAuthStore((state) => state.role);
+  const notificationStore = useNotificationStore();
+  const purchaseRequestStore = usePurchaseRequestStore();
+  const authStore = useAuthStore();
 
-  // 🚀 Maintain the live WebSocket handshake globally within the authenticated wrapper
   useEffect(() => {
-    const getNotifgications = async () => {
-      const data = await getAllNotifications();
-      initNotifications(data);
-    };
-    getNotifgications();
-  }, [initNotifications]);
-  
+    notificationStore.initNotifications();
+    purchaseRequestStore.initPurchaseRequests();
+  }, [notificationStore, purchaseRequestStore]);
+
   useEffect(() => {
-    initSignalR();
-    return () => disconnectSignalR();
-  }, [initSignalR, disconnectSignalR]);
+    notificationStore.initSignalR(authStore.token!);
+    purchaseRequestStore.initSignalR(authStore.token!);
+    return () => notificationStore.disconnectSignalR();
+  }, [notificationStore, authStore, purchaseRequestStore]);
 
   return (
     <SidebarProvider
@@ -41,7 +36,7 @@ export default function DashboardLayout() {
       }
     >
       {/* Pass the role to the sidebar so it can hide/show restricted tabs */}
-      <AppSidebar variant="inset" userRole={role} />
+      <AppSidebar variant="inset" userRole={authStore.role} />
 
       <SidebarInset>
         <SiteHeader />

@@ -6,7 +6,6 @@ namespace IPRS.Server.Models;
 
 public class PurchaseRequest : IValidatableObject
 {
-
     [Key] public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required, MaxLength(20)] public string RequestNumber { get; set; } = string.Empty; // PR-2026-XXXX (Unique)
@@ -16,8 +15,8 @@ public class PurchaseRequest : IValidatableObject
     [MaxLength(1000)] public string? Description { get; set; } = string.Empty;
 
     [Required] public int Quantity { get; set; } = 1;
-    [Required] public decimal UnitPrice { get; set; } 
-    public decimal TotalPrice { get; private set; } 
+    [Required] public decimal UnitPrice { get; set; }
+    public decimal TotalPrice { get; set; }
 
     public UrgencyLevel UrgencyLevel { get; set; } = UrgencyLevel.Low;
     public PurchaseRequestStatus Status { get; set; } = PurchaseRequestStatus.Draft;
@@ -31,7 +30,7 @@ public class PurchaseRequest : IValidatableObject
     public int DepartmentId { get; set; }
 
     [Required] public int CategoryId { get; set; }
-    
+
 
     // Approval / Action Tracks
     public Guid? ManagerActionById { get; set; }
@@ -43,7 +42,7 @@ public class PurchaseRequest : IValidatableObject
     [MaxLength(500)] public string? FinanceNote { get; set; }
 
     [MaxLength(50)] public string? PurchaseOrderNumber { get; set; }
-    
+
     // Relationships
     public User RequestedBy { get; set; } = null!;
     public Department Department { get; set; } = null!;
@@ -59,7 +58,7 @@ public class PurchaseRequest : IValidatableObject
         {
             yield return new ValidationResult(
                 "Description is required for high-value purchase requests exceeding 50,000 SAR.",
-                new[] { nameof(Description) }
+                [nameof(Description)]
             );
         }
     }

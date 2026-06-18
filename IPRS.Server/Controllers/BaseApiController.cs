@@ -15,26 +15,20 @@ public abstract class BaseApiController : ControllerBase
     /// <summary>
     /// Universally extracts both identity pieces at once without throwing unhandled exceptions.
     /// </summary>
-    protected (bool IsSuccess, Guid UserId, string Role, int? departmentId, string? Error) GetUserIdentity()
+    protected (bool IsSuccess, Guid UserId, string Role, int? DepartmentId, string Error) GetUserIdentity()
     {
-        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var roleStr = User.FindFirst(ClaimTypes.Role)?.Value;
-        var departmentId = User.FindFirst("DepartmentId")?.Value;
-        if (string.IsNullOrWhiteSpace(roleStr))
-        {
-            return (false, Guid.Empty, string.Empty, null, "Missing authorization permissions role.");
-        }
+        if (User.Identity?.IsAuthenticated != true)
+            return (false, Guid.Empty, string.Empty, null, "User is not authenticated.");
 
-        if (string.IsNullOrWhiteSpace(departmentId))
-        {
-            return (false, Guid.Empty, string.Empty, null, "Invalid or missing department.");
-        }
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return (false, Guid.Empty, string.Empty, null, "Invalid user identity.");
 
-        if (string.IsNullOrWhiteSpace(userIdStr) || !Guid.TryParse(userIdStr, out Guid userId))
-        {
-            return (false, Guid.Empty, string.Empty, null, "Invalid or missing user identification token.");
-        }
+        var role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
 
-        return (true, userId, roleStr, int.Parse(departmentId), null);
+        var departmentIdStr = User.FindFirst("DepartmentId")?.Value;
+        int? departmentId = int.TryParse(departmentIdStr, out var parsed) ? parsed : null;
+
+        return (true, userId, role, departmentId, string.Empty);
     }
 }

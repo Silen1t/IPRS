@@ -64,7 +64,8 @@ public class PurchaseRequestService(
         int? departmentId)
     {
         var request = await requestRepo.GetByIdAsync(id);
-        if (request == null) return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Purchase request not found.");
+        if (request == null)
+            return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Request not found.");
 
         var userRole = EnumHelper.ConvertStringToEnum<UserRole>(role, "").Data;
         if (userRole == UserRole.Employee && request.RequestedById != userId)
@@ -168,47 +169,28 @@ public class PurchaseRequestService(
             return ServiceResult<PurchaseRequestResponseDto>.LogFailure(department.Message);
         }
 
-        if (department.Data?.ManagerId != null)
+        if (department.Data?.ManagerId == null)
         {
-            var notification = await notificationService.CreateNotificationAsync(
-                new CreateNotificationDto(
-                    department.Data.ManagerId.Value,
-                    $"New procurement request {request.RequestNumber} requires your review.",
-                    request.Id
-                )
+            return ServiceResult<PurchaseRequestResponseDto>.LogFailure(
+                "Submission blocked: This department has no assigned manager. Please contact an Administrator."
             );
-
-            await notificationHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
-                .SendAsync("ReceiveNotification", notification.Data);
-
-            await purchaseRequestHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
-                .SendAsync("ReceiveRequest", request.ToResponse());
         }
-        else
-        {
-            request.Status = PurchaseRequestStatus.Pending_Finance;
-            var businessMessage =
-                $"Request {request.RequestNumber} routed directly to Finance: Initiating department has no assigned manager. Financial clearance required.";
-            var financeUsersResult = await userService.GetAllUsersAsync("Finance", null, true);
-            if (financeUsersResult is { Success: true, Data: not null })
-            {
-                foreach (var financeOfficer in financeUsersResult.Data.Where(u => u.IsActive))
-                {
-                    var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
-                    (
-                        financeOfficer.Id,
-                        businessMessage,
-                        request.Id
-                    ));
 
-                    await notificationHubContext.Clients.User(financeOfficer.Id.ToString())
-                        .SendAsync("ReceiveNotification", notification.Data);
+        var notification = await notificationService.CreateNotificationAsync(
+            new CreateNotificationDto(
+                department.Data.ManagerId.Value,
+                $"New procurement request {request.RequestNumber} requires your review.",
+                request.Id
+            )
+        );
 
-                    await purchaseRequestHubContext.Clients.User(financeOfficer.Id.ToString())
-                        .SendAsync("ReceiveRequest", request.ToResponse());
-                }
-            }
-        }
+        await notificationHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
+            .SendAsync("ReceiveNotification", notification.Data);
+
+        await purchaseRequestHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
+            .SendAsync("ReceiveRequest", request.ToResponse());
+
+        await requestRepo.SaveChangesAsync();
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }

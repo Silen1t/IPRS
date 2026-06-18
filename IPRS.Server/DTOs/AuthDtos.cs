@@ -4,12 +4,12 @@ namespace IPRS.Server.DTOs;
 
 public record LoginEmailDto(
     [Required, EmailAddress] string Email,
-    [Required] string Password
+     string Password
 );
 
 public record LoginEmployeeIdDto(
-    [Required] string EmployeeId,
-    [Required] string Password
+     string EmployeeId,
+     string Password
 );
 
 public record AuthResponseDto(

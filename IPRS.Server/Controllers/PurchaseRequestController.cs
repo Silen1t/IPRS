@@ -49,12 +49,13 @@ public class PurchaseRequestController(IPurchaseRequestService requestService) :
     public async Task<IActionResult> GetById(Guid id)
     {
         var identity = GetUserIdentity();
+        if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
         var result = await requestService.GetRequestByIdAsync(
             id,
             identity.UserId,
             identity.Role,
-            identity.departmentId
+            identity.DepartmentId
         );
         if (!result.Success)
         {

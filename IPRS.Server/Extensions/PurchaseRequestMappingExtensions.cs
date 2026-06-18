@@ -112,11 +112,12 @@ public static class PurchaseRequestMappingExtensions
     public static PurchaseRequest UpdatePurchaseRequest(this PurchaseRequest request,
         UpdatePurchaseRequestDto requestDto)
     {
+        var urgencyLevel = EnumHelper.ConvertStringToEnum<UrgencyLevel>(requestDto.UrgencyLevel, "");
         request.Title = requestDto.Title;
         request.CategoryId = requestDto.CategoryId;
         request.Quantity = requestDto.Quantity;
         request.UnitPrice = requestDto.UnitPrice;
-        request.UrgencyLevel = requestDto.UrgencyLevel;
+        request.UrgencyLevel = urgencyLevel.Data;
         request.Description = requestDto.Description;
         request.UpdatedAt = DateTime.UtcNow;
         return request;

@@ -31,6 +31,22 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero,
         IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
+
+    options.Events = new JwtBearerEvents()
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/api/hubs"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -56,9 +72,6 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.ReferenceHandler =
             System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
 {
@@ -98,6 +111,10 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -120,6 +137,6 @@ app.MapControllers();
 app.MapStaticAssets();
 app.MapFallbackToFile("/index.html");
 app.MapHub<NotificationHub>("api/hubs/notifications");
-app.MapHub<PurchaseRequestHub>("api/hubs/notifications");
+app.MapHub<PurchaseRequestHub>("api/hubs/purchase-requests");
 
 app.Run();

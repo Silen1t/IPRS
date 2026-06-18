@@ -7,14 +7,18 @@ import {
 
 import type { NotificationResponseDto } from '@/schemas/notification';
 import type { Guid } from 'guid-typescript';
-import { readAllNotifications, readNotification } from '@/services/notificationService';
+import {
+  getAllNotifications,
+  readAllNotifications,
+  readNotification,
+} from '@/services/notificationService';
 
 interface NotificationState {
   notifications: NotificationResponseDto[];
   connection: HubConnection | null;
   unreadCount: () => number;
-  initNotifications: (data: NotificationResponseDto[]) => void;
-  initSignalR: () => void;
+  initNotifications: () => void;
+  initSignalR: (token: string) => void;
   disconnectSignalR: () => void;
   markAsRead: (id: Guid) => void;
   markAllAsRead: () => void;
@@ -25,14 +29,20 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   connection: null,
 
   unreadCount: () => get().notifications.filter((n) => !n.isRead).length,
-  initNotifications: (data) => {
-    set({ notifications: data });
+  initNotifications: () => {
+    const getNotifications = async () => {
+      const data = await getAllNotifications();
+      set({ notifications: data });
+    };
+    getNotifications();
   },
-  initSignalR: () => {
+  initSignalR: (token: string) => {
     if (get().connection) return;
 
     const connection = new HubConnectionBuilder()
-      .withUrl('https://localhost:7209/api/hubs/notifications')
+      .withUrl('https://localhost:7209/api/hubs/notifications', {
+        accessTokenFactory: () => token,
+      })
       .withAutomaticReconnect()
       .configureLogging(LogLevel.Warning)
       .build();
@@ -80,7 +90,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
 
   markAllAsRead: async () => {
-    await readAllNotifications()
+    await readAllNotifications();
     set((state) => ({
       notifications: state.notifications.map((n) => ({
         ...n,

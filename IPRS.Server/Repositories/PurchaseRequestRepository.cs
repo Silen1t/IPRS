@@ -26,9 +26,7 @@ public class PurchaseRequestRepository(AppDbContext context) : BaseRepository(co
         DateTime? fromDate, DateTime? toDate)
     {
         var query = Context.PurchaseRequests
-            .Include(p => p.Category)
             .Include(p => p.RequestedBy)
-            .Include(p => p.Department)
             .Include(p => p.ManagerActionBy)
             .Include(p => p.FinanceActionBy)
             .AsQueryable();
