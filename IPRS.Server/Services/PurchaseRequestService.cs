@@ -2,9 +2,11 @@
 using IPRS.Server.DTOs;
 using IPRS.Server.Extensions;
 using IPRS.Server.Helpers;
+using IPRS.Server.Hubs;
 using IPRS.Server.Models;
 using IPRS.Server.Repositories.Interfaces;
 using IPRS.Server.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 
 namespace IPRS.Server.Services;
 
@@ -12,8 +14,10 @@ public class PurchaseRequestService(
     IPurchaseRequestRepository requestRepo,
     IUserService userService,
     INotificationService notificationService,
-    IDepartmentService departmentService
-    )  : IPurchaseRequestService
+    IDepartmentService departmentService,
+    IHubContext<NotificationHub> notificationHubContext,
+    IHubContext<PurchaseRequestHub> purchaseRequestHubContext
+) : IPurchaseRequestService
 {
     public async Task<ServiceResult<PurchaseRequestResponseDto>> CreateRequestAsync(CreatePurchaseRequestDto requestDto,
         Guid userId)
@@ -148,13 +152,19 @@ public class PurchaseRequestService(
 
         if (department.Data?.ManagerId != null)
         {
-            await notificationService.CreateNotificationAsync(
+            var notification = await notificationService.CreateNotificationAsync(
                 new CreateNotificationDto(
                     department.Data.ManagerId.Value,
                     $"New procurement request {request.RequestNumber} requires your review.",
                     request.Id
                 )
             );
+
+            await notificationHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
+                .SendAsync("ReceiveNotification", notification.Data);
+
+            await purchaseRequestHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
+                .SendAsync("ReceiveRequest", request.ToResponse());
         }
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
@@ -178,7 +188,7 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        await notificationService.CreateNotificationAsync(new CreateNotificationDto
+        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
             (
                 request.RequestedById,
                 $"Your purchase request '{request.Title}' ({request.RequestNumber}) was successfully cancelled.",
@@ -186,6 +196,11 @@ public class PurchaseRequestService(
             )
         );
 
+        await notificationHubContext.Clients.User(request.RequestedById.ToString())
+            .SendAsync("ReceiveNotification", notification.Data);
+        
+        await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
+            .SendAsync("ReceiveRequest", request.ToResponse());
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
 
@@ -208,7 +223,7 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        await notificationService.CreateNotificationAsync(new CreateNotificationDto
+        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
             (
                 request.RequestedById,
                 $"Your purchase request '{request.Title}' ({request.RequestNumber}) was approved by your manager and forwarded to Finance.",
@@ -216,17 +231,27 @@ public class PurchaseRequestService(
             )
         );
 
+        await notificationHubContext.Clients.User(request.RequestedById.ToString())
+            .SendAsync("ReceiveNotification", notification.Data);
+
+
         var financeUsersResult = await userService.GetAllUsersAsync("Finance", null, true);
         if (financeUsersResult is { Success: true, Data: not null })
         {
             foreach (var financeOfficer in financeUsersResult.Data.Where(u => u.IsActive))
             {
-                await notificationService.CreateNotificationAsync(new CreateNotificationDto
+                notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
                 (
                     financeOfficer.Id,
                     $"Request {request.RequestNumber} from Department {request.DepartmentId} has been manager-approved and requires financial clearance.",
                     request.Id
                 ));
+
+                await notificationHubContext.Clients.User(financeOfficer.Id.ToString())
+                    .SendAsync("ReceiveNotification", notification.Data);
+
+                await purchaseRequestHubContext.Clients.User(financeOfficer.Id.ToString())
+                    .SendAsync("ReceiveRequest", request.ToResponse());
             }
         }
 
@@ -252,13 +277,19 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        await notificationService.CreateNotificationAsync(new CreateNotificationDto
+        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
             (
                 request.RequestedById,
                 $"Your purchase request '{request.Title}' ({request.RequestNumber}) was rejected by your manager. Reason: {dto.Note}",
                 request.Id
             )
         );
+
+        await notificationHubContext.Clients.User(managerUserId.ToString())
+            .SendAsync("ReceiveNotification", notification.Data);
+
+        await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
+            .SendAsync("ReceiveRequest", request.ToResponse());
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -281,13 +312,19 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        await notificationService.CreateNotificationAsync(new CreateNotificationDto
+        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
             (
                 request.RequestedById,
                 $"🎉 Your purchase request '{request.Title}' ({request.RequestNumber}) has been fully approved! PO Number: {dto.PurchaseOrderNumber}.",
                 request.Id
             )
         );
+        await notificationHubContext.Clients.User(financeUserId.ToString())
+            .SendAsync("ReceiveNotification", notification.Data);
+
+
+        await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
+            .SendAsync("ReceiveRequest", request.ToResponse());
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -308,13 +345,18 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        await notificationService.CreateNotificationAsync(new CreateNotificationDto
+        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
             (
                 request.RequestedById,
                 $"Your purchase request '{request.Title}' ({request.RequestNumber}) was rejected by Finance. Reason: {dto.Note}",
                 request.Id
             )
         );
+        await notificationHubContext.Clients.User(request.RequestedById.ToString())
+            .SendAsync("ReceiveNotification", notification.Data);
+
+        await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
+            .SendAsync("ReceiveRequest", request.ToResponse());
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }

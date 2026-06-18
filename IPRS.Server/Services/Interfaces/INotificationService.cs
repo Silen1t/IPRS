@@ -7,6 +7,7 @@ namespace IPRS.Server.Services.Interfaces;
 public interface INotificationService
 {
     Task<ServiceResult<ICollection<NotificationResponseDto>>> GetAllNotificationsByUserIdAsync(Guid userId);
+    Task<ServiceResult<NotificationResponseDto>> GetNotificationIdAsync(Guid notificationId);
 
     Task<ServiceResult<bool?>> UpdateNotificationReadStatus(
         Guid id,
@@ -14,5 +15,5 @@ public interface INotificationService
     );
 
     Task<ServiceResult<bool?>> UpdateAllNotificationReadStatus(Guid userId, bool readStatus);
-    Task<ServiceResult<Guid>> CreateNotificationAsync(CreateNotificationDto request);
+    Task<ServiceResult<NotificationResponseDto>> CreateNotificationAsync(CreateNotificationDto request);
 }

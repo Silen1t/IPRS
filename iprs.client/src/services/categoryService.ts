@@ -1,0 +1,27 @@
+import type {
+  CategoryLookupDto,
+  CategoryLookupService,
+  CreateCategoryDto,
+  UpdateCategoryDto,
+} from '../schemas/category';
+import { api } from './api';
+
+export async function getAllActiveCategories(): Promise<CategoryLookupDto[]> {
+  const res = await api.get<CategoryLookupDto[]>('categories');
+  return res.data;
+}
+
+export async function createCategory(
+  dto: CreateCategoryDto
+): Promise<CategoryLookupService> {
+  const res = await api.post<CategoryLookupService>('categories', dto);
+  return res.data;
+}
+
+export async function updateCategory(
+  id: number,
+  dto: UpdateCategoryDto
+): Promise<CategoryLookupDto> {
+  const res = await api.put<CategoryLookupDto>(`categories/${id}`, dto);
+  return res.data;
+}

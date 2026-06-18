@@ -1,6 +1,8 @@
-﻿namespace IPRS.Server.Hubs;
+﻿
+using Microsoft.AspNetCore.SignalR;
 
-public class NotificationHub
+namespace IPRS.Server.Hubs
 {
-    
+    // The hub can be completely empty; it just needs to exist as a communication gateway
+    public class NotificationHub : Hub { }
 }

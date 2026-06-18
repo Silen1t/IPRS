@@ -5,8 +5,8 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Controllers;
 
-[Authorize]
 [ApiController]
+[Authorize]
 [Route("categories")]
 public class CategoriesController(ICategoryService categoryService) : BaseApiController
 {

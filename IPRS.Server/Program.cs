@@ -2,6 +2,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using IPRS.Server;
 using IPRS.Server.Data;
+using IPRS.Server.Hubs;
 using IPRS.Server.Infrastructure;
 using IPRS.Server.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -42,6 +43,7 @@ builder.Services.AddRouting(options =>
 });
 
 builder.Services.AddApplicationServices();
+builder.Services.AddSignalR();
 
 // Add services to the container.
 builder.Services.AddControllers(options =>
@@ -63,7 +65,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
         policy.WithOrigins("https://localhost:63257")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials()
+    );
 });
 
 builder.Services.AddRateLimiter(options =>
@@ -115,6 +119,7 @@ if (app.Environment.IsDevelopment()) app.MapOpenApi();
 app.MapControllers();
 app.MapStaticAssets();
 app.MapFallbackToFile("/index.html");
-
+app.MapHub<NotificationHub>("api/hubs/notifications");
+app.MapHub<PurchaseRequestHub>("api/hubs/notifications");
 
 app.Run();

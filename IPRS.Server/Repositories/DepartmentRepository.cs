@@ -7,7 +7,7 @@ namespace IPRS.Server.Repositories;
 
 public class DepartmentRepository(AppDbContext context) : BaseRepository(context), IDepartmentRepository
 {
-    public async Task<Department?> GetByIdAsync(int id)
+    public async Task<Department?> GetByIdAsync(G id)
     {
         return await Context.Departments.FirstOrDefaultAsync(d => d.Id == id);
     }

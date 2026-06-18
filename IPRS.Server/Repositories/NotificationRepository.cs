@@ -12,6 +12,11 @@ public class NotificationRepository(AppDbContext context) : BaseRepository(conte
             .OrderByDescending(n => n.CreatedAt).ToListAsync();
     }
 
+    public async Task<Notification?> GetByIdAsync(Guid notificationId)
+    {
+        return await Context.Notifications.FirstOrDefaultAsync(n => n.Id == notificationId);
+    }
+
     public async Task<Notification?> UpdateReadStatus(Guid notificationId, bool readStatus)
     {
         var notification = await Context.Notifications
