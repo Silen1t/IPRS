@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using IPRS.Server.DTOs;
-using IPRS.Server.Extensions;
+﻿using IPRS.Server.DTOs;
 using IPRS.Server.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +22,8 @@ public class NotificationsController(INotificationService notificationService) :
     public async Task<IActionResult> UpdateReadStatus(Guid id,
         [FromBody] UpdateNotificationReadStatusDto request)
     {
-        var status = await notificationService.UpdateNotificationReadStatus(id, request);
+
+        var status = await notificationService.UpdateNotificationReadStatus(id, CurrentUserId,request);
         if (!status.Success) return BadRequest(status.Message);
         return Ok(status.Message);
     }

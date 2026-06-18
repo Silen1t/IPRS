@@ -26,7 +26,7 @@ finance officer issuing a Purchase Order (PO).
 There are four roles in the system. Every user has exactly one role.
 
 | Role       | Arabic Label | Description                                          |
-|------------|--------------|------------------------------------------------------|
+| ---------- | ------------ | ---------------------------------------------------- |
 | `Employee` | موظف         | Submits purchase requests, tracks their own requests |
 | `Manager`  | مدير قسم     | Approves or rejects requests from their department   |
 | `Finance`  | مسؤول مالي   | Final approval level; issues PO numbers              |
@@ -38,7 +38,7 @@ There are four roles in the system. Every user has exactly one role.
 
 A request always moves through these statuses in order. It can only move backward if rejected.
 
-```
+```txt
 [DRAFT] → [PENDING_MANAGER] → [PENDING_FINANCE] → [APPROVED]
                    ↓                    ↓
                [REJECTED]           [REJECTED]
@@ -121,20 +121,20 @@ alone.
 
 - In-app notifications only (no email required for v1).
 - Triggered automatically when:
-    - A request is submitted (notify the department manager).
-    - A request is approved by manager (notify finance + the employee).
-    - A request is approved by finance (notify the employee).
-    - A request is rejected at any stage (notify the employee).
+  - A request is submitted (notify the department manager).
+  - A request is approved by manager (notify finance + the employee).
+  - A request is approved by finance (notify the employee).
+  - A request is rejected at any stage (notify the employee).
 - Notification shows as unread (red badge on bell icon) until the user marks it read.
 - User can mark individual or all notifications as read.
 
 ### 5.7 Dashboard & Reports
 
 - Each role sees a role-appropriate dashboard on login:
-    - **Employee:** My request counts by status (Draft, Pending, Approved, Rejected).
-    - **Manager:** Pending approvals count, department total spend this month.
-    - **Finance:** Pending finance approvals count, total approved spend this month.
-    - **Admin:** System-wide totals — total requests, total users, total departments.
+  - **Employee:** My request counts by status (Draft, Pending, Approved, Rejected).
+  - **Manager:** Pending approvals count, department total spend this month.
+  - **Finance:** Pending finance approvals count, total approved spend this month.
+  - **Admin:** System-wide totals — total requests, total users, total departments.
 - A basic report page (Admin + Finance) that allows filtering all requests by date range, status, and department, with a
   total spend sum.
 
@@ -145,7 +145,7 @@ alone.
 ### Table: `Users`
 
 | Column         | Type               | Notes                                |
-|----------------|--------------------|--------------------------------------|
+| -------------- | ------------------ | ------------------------------------ |
 | `Id`           | int (PK)           | Auto-increment                       |
 | `FullName`     | nvarchar(100)      | Required                             |
 | `Email`        | nvarchar(150)      | Unique, required                     |
@@ -158,7 +158,7 @@ alone.
 ### Table: `Departments`
 
 | Column      | Type                       | Notes                |
-|-------------|----------------------------|----------------------|
+| ----------- | -------------------------- | -------------------- |
 | `Id`        | int (PK)                   | Auto-increment       |
 | `Name`      | nvarchar(100)              | Required             |
 | `ManagerId` | int (FK → Users, nullable) | The assigned manager |
@@ -167,7 +167,7 @@ alone.
 ### Table: `Categories`
 
 | Column     | Type          | Notes               |
-|------------|---------------|---------------------|
+| ---------- | ------------- | ------------------- |
 | `Id`       | int (PK)      | Auto-increment      |
 | `Name`     | nvarchar(100) | e.g. "IT Equipment" |
 | `IsActive` | bit           | Default true        |
@@ -175,7 +175,7 @@ alone.
 ### Table: `PurchaseRequests`
 
 | Column                | Type                       | Notes                                 |
-|-----------------------|----------------------------|---------------------------------------|
+| --------------------- | -------------------------- | ------------------------------------- |
 | `Id`                  | int (PK)                   | Auto-increment                        |
 | `RequestNumber`       | nvarchar(20)               | e.g. PR-2025-0001, unique             |
 | `Title`               | nvarchar(200)              | Required                              |
@@ -201,7 +201,7 @@ alone.
 ### Table: `Notifications`
 
 | Column             | Type                                  | Notes                                               |
-|--------------------|---------------------------------------|-----------------------------------------------------|
+| ------------------ | ------------------------------------- | --------------------------------------------------- |
 | `Id`               | int (PK)                              | Auto-increment                                      |
 | `UserId`           | int (FK → Users)                      | The recipient                                       |
 | `Message`          | nvarchar(300)                         | e.g. "Your request PR-2025-0001 has been approved." |
@@ -219,14 +219,14 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 ### Auth
 
 | Method | Endpoint      | Access | Description                                  |
-|--------|---------------|--------|----------------------------------------------|
+| ------ | ------------- | ------ | -------------------------------------------- |
 | POST   | `/auth/login` | Public | Login with email + password. Returns JWT.    |
 | GET    | `/auth/me`    | All    | Returns the current user's profile and role. |
 
 ### Purchase Requests
 
 | Method | Endpoint                         | Access   | Description                                                                                                                                                         |
-|--------|----------------------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------ | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | GET    | `/requests`                      | All      | Returns requests filtered by role. Employee: own only. Manager: department only. Finance/Admin: all. Supports query params: `status`, `departmentId`, `from`, `to`. |
 | GET    | `/requests/{id}`                 | All      | Full detail of a single request.                                                                                                                                    |
 | POST   | `/requests`                      | Employee | Create a new request (status = DRAFT).                                                                                                                              |
@@ -241,7 +241,7 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 ### Users (Admin Only)
 
 | Method | Endpoint                 | Description                                                          |
-|--------|--------------------------|----------------------------------------------------------------------|
+| ------ | ------------------------ | -------------------------------------------------------------------- |
 | GET    | `/users`                 | List all users. Supports `role`, `departmentId`, `isActive` filters. |
 | POST   | `/users`                 | Create a new user.                                                   |
 | PUT    | `/users/{id}`            | Update user info (name, role, department).                           |
@@ -250,7 +250,7 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 ### Departments (Admin Only)
 
 | Method | Endpoint            | Description                                |
-|--------|---------------------|--------------------------------------------|
+| ------ | ------------------- | ------------------------------------------ |
 | GET    | `/departments`      | List all departments (all roles can read). |
 | POST   | `/departments`      | Create a department.                       |
 | PUT    | `/departments/{id}` | Edit department name or assigned manager.  |
@@ -258,7 +258,7 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 ### Categories
 
 | Method | Endpoint           | Description                             |
-|--------|--------------------|-----------------------------------------|
+| ------ | ------------------ | --------------------------------------- |
 | GET    | `/categories`      | List all active categories (all roles). |
 | POST   | `/categories`      | Create category (Admin only).           |
 | PUT    | `/categories/{id}` | Edit category (Admin only).             |
@@ -266,7 +266,7 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 ### Notifications
 
 | Method | Endpoint                   | Description                                  |
-|--------|----------------------------|----------------------------------------------|
+| ------ | -------------------------- | -------------------------------------------- |
 | GET    | `/notifications`           | Current user's notifications (newest first). |
 | PATCH  | `/notifications/{id}/read` | Mark one as read.                            |
 | PATCH  | `/notifications/read-all`  | Mark all as read.                            |
@@ -274,7 +274,7 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 ### Dashboard
 
 | Method | Endpoint            | Description                                       |
-|--------|---------------------|---------------------------------------------------|
+| ------ | ------------------- | ------------------------------------------------- |
 | GET    | `/dashboard/stats`  | Role-appropriate summary stats.                   |
 | GET    | `/reports/requests` | Filterable full request report (Admin + Finance). |
 
@@ -323,7 +323,7 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 
 ## 9. Tech Stack & Architecture Notes
 
-**Frontend**
+### Frontend
 
 - React + TypeScript
 - React Router v6 for routing and role-based route guards
@@ -332,7 +332,7 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 - Zustand for global state (auth user, notification count)
 - React Hook Form for form handling and validation
 
-**Backend**
+### Backend
 
 - ASP.NET Core 8 Web API
 - Entity Framework Core with SQL Server
@@ -341,14 +341,14 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
 - Role-based authorization using `[Authorize(Roles = "Manager")]` attributes
 - AutoMapper for mapping between entities and DTOs
 
-**Database**
+### Database
 
 - SQL Server (LocalDB for development, SQL Server Express for production)
 - Code-first migrations via EF Core
 
-**Folder Structure (Backend suggestion)**
+### Folder Structure (Backend suggestion)
 
-```
+```txt
 /IPRS.API
   /Controllers
   /Models          ← EF Core entities
@@ -359,9 +359,9 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
   /Migrations
 ```
 
-**Folder Structure (Frontend suggestion)**
+### Folder Structure (Frontend suggestion)
 
-```
+```txt
 /src
   /pages           ← One folder per role
   /components      ← Shared UI components
@@ -371,7 +371,7 @@ All endpoints require `Authorization: Bearer <token>` header except `/auth/login
   /utils           ← Helpers (formatDate, formatSAR, etc.)
 ```
 
-```
+```txt
 src
 ├── utils
 │   ├── currency.ts      # Contains: formatSAR function
@@ -423,14 +423,14 @@ src
 
 The system should include a database seeder that creates the following on first run:
 
-| Role     | Email                | Password     | Department    |
-|----------|----------------------|--------------|---------------|
-| Admin    | admin@majd.com       | Admin@123    | —             |
-| Finance  | finance@majd.com     | Finance@123  | —             |
-| Manager  | manager.it@majd.com  | Manager@123  | IT Department |
-| Manager  | manager.ops@majd.com | Manager@123  | Operations    |
-| Employee | ahmed@majd.com       | Employee@123 | IT Department |
-| Employee | sara@majd.com        | Employee@123 | Operations    |
+| Role     | Email                  | Password     | Department    |
+| -------- | ---------------------- | ------------ | ------------- |
+| Admin    | <admin@majd.com>       | Admin@123    | —             |
+| Finance  | <finance@majd.com>     | Finance@123  | —             |
+| Manager  | <manager.it@majd.com>  | Manager@123  | IT Department |
+| Manager  | <manager.ops@majd.com> | Manager@123  | Operations    |
+| Employee | <ahmed@majd.com>       | Employee@123 | IT Department |
+| Employee | <sara@majd.com>        | Employee@123 | Operations    |
 
 Seed categories: IT Equipment, Office Supplies, Software Licenses, Furniture, Maintenance & Repair, Other.
 

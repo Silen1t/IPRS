@@ -10,7 +10,7 @@ public static class PurchaseRequestMappingExtensions
     public static PurchaseRequestResponseDto ToResponse(this PurchaseRequest request)
     {
         ApprovalStageDto? managerApproval = null;
-        if (request.ManagerActionBy != null && request.ManagerActionAt.HasValue)
+        if (request is { ManagerActionBy: not null, ManagerActionAt: not null })
         {
             managerApproval = new ApprovalStageDto(
                 new UserSummaryResponse(
@@ -26,7 +26,7 @@ public static class PurchaseRequestMappingExtensions
         }
 
         ApprovalStageDto? financeApproval = null;
-        if (request.FinanceActionBy != null && request.FinanceActionAt.HasValue)
+        if (request is { FinanceActionBy: not null, FinanceActionAt: not null })
         {
             financeApproval = new ApprovalStageDto(
                 new UserSummaryResponse(
@@ -51,6 +51,8 @@ public static class PurchaseRequestMappingExtensions
             request.TotalPrice,
             request.UrgencyLevel.ToString(),
             request.Status.ToString(),
+            request.DepartmentId,
+            request.CategoryId,
             request.CreatedAt,
             request.UpdatedAt,
             new UserSummaryResponse(

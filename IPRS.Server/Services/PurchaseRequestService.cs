@@ -57,11 +57,27 @@ public class PurchaseRequestService(
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(createdRequest!.ToResponse());
     }
 
-    public async Task<ServiceResult<PurchaseRequestResponseDto>> GetRequestByIdAsync(Guid id)
+    public async Task<ServiceResult<PurchaseRequestResponseDto>> GetRequestByIdAsync(
+        Guid id,
+        Guid userId,
+        string role,
+        int? departmentId)
     {
         var request = await requestRepo.GetByIdAsync(id);
         if (request == null) return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Purchase request not found.");
-        return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
+
+        var userRole = EnumHelper.ConvertStringToEnum<UserRole>(role, "").Data;
+        if (userRole == UserRole.Employee && request.RequestedById != userId)
+            return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Request not found.");
+
+
+        if (userRole == UserRole.Manager && request.DepartmentId != departmentId)
+            return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Request not found.");
+
+        return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(
+            request.ToResponse(),
+            "Request retrieved successfully."
+        );
     }
 
     public async Task<ServiceResult<ICollection<PurchaseRequestResponseDto>>> GetFilteredRequestsForUserAsync(
@@ -135,8 +151,10 @@ public class PurchaseRequestService(
     {
         var request = await requestRepo.GetByIdAsync(id);
         if (request == null) return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Purchase request not found.");
+
         if (request.RequestedById != userId)
             return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Access Denied.");
+
         if (request.Status != PurchaseRequestStatus.Draft)
             return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Only DRAFT requests can be submitted.");
 
@@ -165,6 +183,31 @@ public class PurchaseRequestService(
 
             await purchaseRequestHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
                 .SendAsync("ReceiveRequest", request.ToResponse());
+        }
+        else
+        {
+            request.Status = PurchaseRequestStatus.Pending_Finance;
+            var businessMessage =
+                $"Request {request.RequestNumber} routed directly to Finance: Initiating department has no assigned manager. Financial clearance required.";
+            var financeUsersResult = await userService.GetAllUsersAsync("Finance", null, true);
+            if (financeUsersResult is { Success: true, Data: not null })
+            {
+                foreach (var financeOfficer in financeUsersResult.Data.Where(u => u.IsActive))
+                {
+                    var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
+                    (
+                        financeOfficer.Id,
+                        businessMessage,
+                        request.Id
+                    ));
+
+                    await notificationHubContext.Clients.User(financeOfficer.Id.ToString())
+                        .SendAsync("ReceiveNotification", notification.Data);
+
+                    await purchaseRequestHubContext.Clients.User(financeOfficer.Id.ToString())
+                        .SendAsync("ReceiveRequest", request.ToResponse());
+                }
+            }
         }
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
@@ -198,7 +241,7 @@ public class PurchaseRequestService(
 
         await notificationHubContext.Clients.User(request.RequestedById.ToString())
             .SendAsync("ReceiveNotification", notification.Data);
-        
+
         await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
             .SendAsync("ReceiveRequest", request.ToResponse());
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());

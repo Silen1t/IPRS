@@ -16,8 +16,8 @@ public class PurchaseRequestRepository(AppDbContext context) : BaseRepository(co
         return await Context.PurchaseRequests
             .Include(p => p.Category)
             .Include(p => p.RequestedBy)
-            .Include(p => p.ManagerActionBy)  
-            .Include(p => p.FinanceActionBy)  
+            .Include(p => p.ManagerActionBy)
+            .Include(p => p.FinanceActionBy)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
@@ -29,6 +29,8 @@ public class PurchaseRequestRepository(AppDbContext context) : BaseRepository(co
             .Include(p => p.Category)
             .Include(p => p.RequestedBy)
             .Include(p => p.Department)
+            .Include(p => p.ManagerActionBy)
+            .Include(p => p.FinanceActionBy)
             .AsQueryable();
 
 

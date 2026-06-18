@@ -41,9 +41,15 @@ public class DepartmentService(IDepartmentRepository departmentRepo) : IDepartme
         Department? department = await departmentRepo.GetByIdAsync(id);
         if (department == null)
             return ServiceResult<DepartmentResponseDto>.LogFailure("Department not found.");
-        
+
+
+        if (request.RemoveManager)
+        {
+            department.ManagerId = null;
+        }
+        else if (request.ManagerId != null) department.ManagerId = request.ManagerId;
+            
         if(request.Name != null) department.Name = request.Name;
-        if(request.ManagerId != null) department.ManagerId = request.ManagerId;
         
         await departmentRepo.SaveChangesAsync();
 

@@ -20,22 +20,18 @@ public class NotificationService(INotificationRepository notificationRepo, IUser
         return ServiceResult<ICollection<NotificationResponseDto>>.LogSuccess(notificationResponses);
     }
 
-    public async Task<ServiceResult<NotificationResponseDto>> GetNotificationIdAsync(Guid notificationId)
+    public async Task<ServiceResult<bool?>> UpdateNotificationReadStatus(
+        Guid id,
+        Guid currentUserId,
+        UpdateNotificationReadStatusDto request
+    )
     {
-        var notification = await notificationRepo.GetByIdAsync(notificationId);
-        if (notification == null)
-            return ServiceResult<NotificationResponseDto>.LogFailure("Notification not found.");
-        
-        return ServiceResult<NotificationResponseDto>.LogSuccess(notification.ToResponse());
-    }
-
-    public async Task<ServiceResult<bool?>> UpdateNotificationReadStatus(Guid id,
-        UpdateNotificationReadStatusDto request)
-    {
-        var notification = await notificationRepo.UpdateReadStatus(id, request.IsRead);
-        if (notification == null)
+        var notification = await notificationRepo.GetByIdAsync(id);
+        if (notification == null || notification.UserId != currentUserId)
             return ServiceResult<bool?>.LogFailure("Notification not found.");
 
+
+        notification.IsRead = request.IsRead;
         await notificationRepo.SaveChangesAsync();
         return ServiceResult<bool?>.LogSuccess(notification.IsRead, "Notification read status updated.");
     }

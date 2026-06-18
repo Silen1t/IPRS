@@ -35,6 +35,8 @@ public record PurchaseRequestResponseDto(
     decimal TotalPrice,
     string UrgencyLevel,
     string Status,
+    int DepartmentId,
+    int CategoryId,
     DateTime CreatedAt,
     DateTime UpdatedAt,
     UserSummaryResponse RequestedBy,

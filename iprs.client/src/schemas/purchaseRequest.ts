@@ -66,6 +66,8 @@ export const purchaseRequestResponseSchema = z.object({
   totalPrice: z.number(),
   urgencyLevel: z.enum(UrgencyLevel),
   status: z.enum(PurchaseRequestStatus),
+  departmentId: z.number().int(),
+  categoryId: z.number().int(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
   requestedBy: userSummaryResponseSchema,

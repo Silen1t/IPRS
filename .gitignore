@@ -28,7 +28,6 @@ bld/
 *.log
 *.err
 *.wrn
-project.lock.json
 .usersecrets
 
 # Local development configuration (keeps database credentials safe)
@@ -42,7 +41,7 @@ project.lock.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+**/iprs.client/package-lock.json
 
 # Production build outputs
 **/iprs.client/build/

@@ -20,13 +20,13 @@ public class UsersController(IUserService userService) : BaseApiController
 
         return Ok(result.Data);
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {
         var createdUserDto = await userService.RegisterUserAsync(dto);
         if (!createdUserDto.Success) return BadRequest(createdUserDto.Message);
-        return CreatedAtAction(nameof(GetById), new { id = createdUserDto.Data!.Id }, createdUserDto);
+        return CreatedAtAction(nameof(GetById), new { id = createdUserDto.Data!.Id }, createdUserDto.Data);
     }
 
     [HttpGet("{id}")]

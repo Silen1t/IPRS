@@ -38,6 +38,12 @@ public class UserService(IUserRepository userRepo) : IUserService
             }
             catch (DbUpdateException ex) when (IsUniqueViolation(ex))
             {
+                if (ex.InnerException?.Message.Contains("Email", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    return ServiceResult<UserResponseDto>.LogFailure("Email is already registered.");
+                }
+
+                // If it wasn't the email, it's safe to assume it's an EmployeeId collision. Retry!
                 if (attempt == maxRetries - 1)
                     return ServiceResult<UserResponseDto>.LogFailure("Failed to generate a unique Employee ID.");
             }

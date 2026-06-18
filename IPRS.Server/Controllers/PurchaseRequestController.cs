@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace IPRS.Server.Controllers;
 
 [ApiController]
-[Route("requests")] 
+[Route("requests")]
 [Authorize]
 public class PurchaseRequestController(IPurchaseRequestService requestService) : BaseApiController
 {
@@ -48,8 +48,24 @@ public class PurchaseRequestController(IPurchaseRequestService requestService) :
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await requestService.GetRequestByIdAsync(id);
-        if (!result.Success) return NotFound(result.Message);
+        var identity = GetUserIdentity();
+
+        var result = await requestService.GetRequestByIdAsync(
+            id,
+            identity.UserId,
+            identity.Role,
+            identity.departmentId
+        );
+        if (!result.Success)
+        {
+            if (result.Message == "Request not found.")
+            {
+                return NotFound(result.Message);
+            }
+
+            return BadRequest(result.Message);
+        }
+
         return Ok(result.Data);
     }
 

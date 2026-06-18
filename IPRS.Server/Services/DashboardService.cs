@@ -69,16 +69,15 @@ public class DashboardService(IDashboardRepository dashboardRepo) : IDashboardSe
     {
         var matchingRequests = await dashboardRepo.GetFilteredReportRequestsAsync(
             from,
-            to, 
-            status, 
+            to,
+            status,
             departmentId);
 
 
         var summary = new ReportSummaryDto
         {
             Requests = matchingRequests.Select(r => r.ToResponse()).ToList(),
-            TotalSpendSum = matchingRequests.Where(r => r.Status == PurchaseRequestStatus.Approved)
-                .Sum(r => r.TotalPrice)
+            TotalSpendSum = matchingRequests.Sum(r => r.TotalPrice)
         };
 
         return ServiceResult<ReportSummaryDto>.LogSuccess(summary);

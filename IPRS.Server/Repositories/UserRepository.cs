@@ -48,9 +48,10 @@ public class UserRepository(AppDbContext context) : BaseRepository(context), IUs
         return user;
     }
 
-    public async Task UpdateAsync(User user)
+    public Task UpdateAsync(User user)
     {
         Context.Users.Update(user);
+        return Task.CompletedTask;
     }
 
     public async Task<User?> GetByEmployeeIdAsync(string employeeId)

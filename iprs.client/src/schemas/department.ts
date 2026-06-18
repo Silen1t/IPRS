@@ -27,6 +27,7 @@ export const updateDepartmentSchema = z.object({
     .nullable()
     .optional(),
   managerId: z.guid().nullable().optional(),
+  removeManager: z.boolean().default(false),
 });
 
 export type UpdateDepartmentDto = z.infer<typeof updateDepartmentSchema>;
