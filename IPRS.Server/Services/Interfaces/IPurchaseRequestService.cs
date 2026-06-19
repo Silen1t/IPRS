@@ -19,7 +19,7 @@ public interface IPurchaseRequestService
     Task<ServiceResult<ICollection<PurchaseRequestResponseDto>>> GetFilteredRequestsForUserAsync(
         Guid userId, string role, string? status, int? queryDeptId, DateTime? fromDate, DateTime? toDate);
 
-    Task<ServiceResult<PurchaseRequestResponseDto>> UpdatingRequestAsync(Guid id, UpdatePurchaseRequestDto requestDto,
+    Task<ServiceResult<PurchaseRequestResponseDto>> UpdateRequestAsync(Guid id, UpdatePurchaseRequestDto requestDto,
         Guid userId);
 
     Task<ServiceResult<PurchaseRequestResponseDto>> SubmitRequestAsync(Guid id, Guid userId);

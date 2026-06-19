@@ -124,7 +124,7 @@ public class PurchaseRequestService(
         return ServiceResult<ICollection<PurchaseRequestResponseDto>>.LogSuccess(responseDtos);
     }
 
-    public async Task<ServiceResult<PurchaseRequestResponseDto>> UpdatingRequestAsync(Guid id,
+    public async Task<ServiceResult<PurchaseRequestResponseDto>> UpdateRequestAsync(Guid id,
         UpdatePurchaseRequestDto requestDto, Guid userId)
     {
         var request = await requestRepo.GetByIdAsync(id);
