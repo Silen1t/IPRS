@@ -1,18 +1,23 @@
 ﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
 using IPRS.Server.Extensions;
+using IPRS.Server.Hubs;
 using IPRS.Server.Models;
 using IPRS.Server.Repositories.Interfaces;
 using IPRS.Server.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 
 namespace IPRS.Server.Services;
 
-public class NotificationService(INotificationRepository notificationRepo, IUserRepository userRepo)
+public class NotificationService(
+    INotificationRepository notificationRepo,
+    IHubContext<NotificationHub> notificationHubContext
+)
     : INotificationService
 {
     public async Task<ServiceResult<ICollection<NotificationResponseDto>>> GetAllNotificationsByUserIdAsync(Guid userId)
     {
-        if (!await userRepo.ExistAsync<User>(userId))
+        if (!await notificationRepo.ExistAsync<User>(userId))
             return ServiceResult<ICollection<NotificationResponseDto>>.LogFailure("User not found");
 
         var notifications = await notificationRepo.GetAllByUserIdAsync(userId);
@@ -38,7 +43,7 @@ public class NotificationService(INotificationRepository notificationRepo, IUser
 
     public async Task<ServiceResult<bool?>> UpdateAllNotificationReadStatus(Guid userId, bool readStatus)
     {
-        if (!await userRepo.ExistAsync<User>(userId))
+        if (!await notificationRepo.ExistAsync<User>(userId))
             return ServiceResult<bool?>.LogFailure("User not found.");
 
         await notificationRepo.UpdateAllReadStatus(userId, readStatus);
@@ -48,7 +53,7 @@ public class NotificationService(INotificationRepository notificationRepo, IUser
 
     public async Task<ServiceResult<NotificationResponseDto>> CreateNotificationAsync(CreateNotificationDto request)
     {
-        if (!await userRepo.ExistAsync<User>(request.UserId))
+        if (!await notificationRepo.ExistAsync<User>(request.UserId))
             return ServiceResult<NotificationResponseDto>.LogFailure(
                 $"Notification recipient user with ID {request.UserId} was not found.");
 
@@ -58,5 +63,19 @@ public class NotificationService(INotificationRepository notificationRepo, IUser
         await notificationRepo.SaveChangesAsync();
 
         return ServiceResult<NotificationResponseDto>.LogSuccess(notification.ToResponse());
+    }
+
+    public async Task NotifyUserAsync(Guid notifyingUserId, string message, Guid relatedRequestId)
+    {
+        var notification = await CreateNotificationAsync(
+            new CreateNotificationDto(
+                notifyingUserId,
+                message,
+                relatedRequestId
+            )
+        );
+
+        await notificationHubContext.Clients.User(notifyingUserId.ToString())
+            .SendAsync("ReceiveNotification", notification.Data);
     }
 }

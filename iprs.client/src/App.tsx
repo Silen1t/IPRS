@@ -10,6 +10,7 @@ import RequestDetailPage from './pages/shared/RequestDetailPage';
 import RoleProtectedRoute from './components/auth/RoleProtectedRouteProps';
 import { UserRole } from './types/enums';
 import MyRequests from './pages/employee/MyRequests';
+import NotificationsPage from './pages/shared/NotificationsPage';
 
 export default function App() {
   useEffect(() => {}, []);
@@ -24,6 +25,7 @@ export default function App() {
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/requests" element={<RequestDetailPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
 
             <Route
               element={

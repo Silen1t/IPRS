@@ -10,14 +10,17 @@ import {
 } from '@/shadcn-ui/components/ui/dropdown-menu';
 import { cn } from '@/shadcn-ui/lib/utils';
 import { useNotificationStore } from '@/store/useNotificationStore';
-import dayjs from 'dayjs';
 import { Guid } from 'guid-typescript';
+import { useNavigate } from 'react-router';
+import { FormatDate } from '@/utils/date';
 
 export default function NotificationSubMenu() {
   const notifications = useNotificationStore((state) => state.notifications);
   const markAsRead = useNotificationStore((state) => state.markAsRead);
   const markAllAsRead = useNotificationStore((state) => state.markAllAsRead);
   const unreadCount = useNotificationStore((state) => state.unreadCount());
+
+  const nav = useNavigate();
 
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -26,14 +29,13 @@ export default function NotificationSubMenu() {
     return false;
   });
 
-  // 🟢 Local state to handle the native mobile drawer overlay
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 1023px)');
     const listener = (e: MediaQueryListEvent) => {
       setIsMobileOrTablet(e.matches);
-      if (!e.matches) setIsMobileDrawerOpen(false); // Close drawer if resizing up to desktop
+      if (!e.matches) setIsMobileDrawerOpen(false);
     };
     media.addEventListener('change', listener);
     return () => media.removeEventListener('change', listener);
@@ -91,9 +93,6 @@ export default function NotificationSubMenu() {
           </div>
         ) : (
           notifications.map((item) => {
-            const createdAt = dayjs(item.createdAt).format(
-              'MMM D, YYYY h:mm A'
-            );
             return (
               <DropdownMenuItem
                 key={item.id}
@@ -117,7 +116,7 @@ export default function NotificationSubMenu() {
                 <div className="flex-1 space-y-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
-                      {createdAt}
+                      {FormatDate(item.createdAt)}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-normal wrap-break-word whitespace-normal">
@@ -137,6 +136,9 @@ export default function NotificationSubMenu() {
           variant="ghost"
           size="sm"
           className="w-full text-xs font-medium justify-center h-8 text-muted-foreground hover:text-foreground"
+          onClick={() => {
+            nav('notifications', { replace: true });
+          }}
         >
           View all history
         </Button>

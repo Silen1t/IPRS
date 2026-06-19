@@ -11,20 +11,54 @@ import {
 import { usePurchaseRequestStore } from '@/store/usePurchaseRequestStore';
 
 export default function DashboardLayout() {
-  const notificationStore = useNotificationStore();
-  const purchaseRequestStore = usePurchaseRequestStore();
-  const authStore = useAuthStore();
+  const token = useAuthStore((state) => state.token);
+  const role = useAuthStore((state) => state.role);
+
+  const initNotifications = useNotificationStore(
+    (state) => state.initNotifications
+  );
+  const initNotificationSignalR = useNotificationStore(
+    (state) => state.initSignalR
+  );
+  const disconnectNotificationSignalR = useNotificationStore(
+    (state) => state.disconnectSignalR
+  );
+
+  const initPurchaseRequests = usePurchaseRequestStore(
+    (state) => state.initPurchaseRequests
+  ); 
+  const initRequestSignalR = usePurchaseRequestStore(
+    (state) => state.initSignalR
+  );
+  const disconnectRequestSignalR = usePurchaseRequestStore(
+    (state) => state.disconnectSignalR
+  );
 
   useEffect(() => {
-    notificationStore.initNotifications();
-    purchaseRequestStore.initPurchaseRequests();
-  }, [notificationStore, purchaseRequestStore]);
+    if (!token) return;
+
+    initNotifications();
+    initPurchaseRequests();
+
+  }, [token, initNotifications, initPurchaseRequests]);
 
   useEffect(() => {
-    notificationStore.initSignalR(authStore.token!);
-    purchaseRequestStore.initSignalR(authStore.token!);
-    return () => notificationStore.disconnectSignalR();
-  }, [notificationStore, authStore, purchaseRequestStore]);
+    if (!token) return;
+
+    initNotificationSignalR(token);
+    initRequestSignalR(token);
+
+    return () => {
+      disconnectNotificationSignalR();
+      disconnectRequestSignalR();
+    };
+  }, [
+    token,
+    initNotificationSignalR,
+    initRequestSignalR,
+    disconnectNotificationSignalR,
+    disconnectRequestSignalR,
+  ]);
 
   return (
     <SidebarProvider
@@ -36,7 +70,7 @@ export default function DashboardLayout() {
       }
     >
       {/* Pass the role to the sidebar so it can hide/show restricted tabs */}
-      <AppSidebar variant="inset" userRole={authStore.role} />
+      <AppSidebar variant="inset" userRole={role} />
 
       <SidebarInset>
         <SiteHeader />

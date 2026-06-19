@@ -14,4 +14,5 @@ public interface INotificationService
 
     Task<ServiceResult<bool?>> UpdateAllNotificationReadStatus(Guid userId, bool readStatus);
     Task<ServiceResult<NotificationResponseDto>> CreateNotificationAsync(CreateNotificationDto request);
+    Task NotifyUserAsync(Guid sendToUserId, string message, Guid relatedRequestId);
 }

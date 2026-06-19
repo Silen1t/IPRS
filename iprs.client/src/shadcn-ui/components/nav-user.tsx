@@ -1,4 +1,4 @@
-import NotificationSubMenu from '@/components/NotificationSubMenu';
+import NotificationSubMenu from '@/components/notifications/NotificationSubMenu';
 import {
   Avatar,
   AvatarFallback,

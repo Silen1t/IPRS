@@ -83,6 +83,9 @@ public class DashboardRepository : BaseRepository, IDashboardRepository
         var query = Context.PurchaseRequests
             .Include(r => r.Category)
             .Include(r => r.RequestedBy)
+            .Include(r => r.ManagerActionBy)
+            .Include(r => r.FinanceActionBy)
+            .AsNoTracking()
             .AsQueryable();
 
         if (from.HasValue)

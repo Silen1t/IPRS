@@ -16,7 +16,7 @@ public class PurchaseRequest : IValidatableObject
 
     [Required] public int Quantity { get; set; } = 1;
     [Required] public decimal UnitPrice { get; set; }
-    public decimal TotalPrice { get; set; }
+    public decimal TotalPrice { get; private set; }
 
     public UrgencyLevel UrgencyLevel { get; set; } = UrgencyLevel.Low;
     public PurchaseRequestStatus Status { get; set; } = PurchaseRequestStatus.Draft;

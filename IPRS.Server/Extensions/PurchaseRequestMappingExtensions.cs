@@ -109,10 +109,13 @@ public static class PurchaseRequestMappingExtensions
         };
     }
 
-    public static PurchaseRequest UpdatePurchaseRequest(this PurchaseRequest request,
+    public static ServiceResult<PurchaseRequest> UpdatePurchaseRequest(this PurchaseRequest request,
         UpdatePurchaseRequestDto requestDto)
     {
-        var urgencyLevel = EnumHelper.ConvertStringToEnum<UrgencyLevel>(requestDto.UrgencyLevel, "");
+        var urgencyLevel =
+            EnumHelper.ConvertStringToEnum<UrgencyLevel>(requestDto.UrgencyLevel, "Invalid Urgency Level", true);
+        if (!urgencyLevel.Success) return ServiceResult<PurchaseRequest>.LogFailure(urgencyLevel.Message);
+
         request.Title = requestDto.Title;
         request.CategoryId = requestDto.CategoryId;
         request.Quantity = requestDto.Quantity;
@@ -120,6 +123,7 @@ public static class PurchaseRequestMappingExtensions
         request.UrgencyLevel = urgencyLevel.Data;
         request.Description = requestDto.Description;
         request.UpdatedAt = DateTime.UtcNow;
-        return request;
+        
+        return ServiceResult<PurchaseRequest>.LogSuccess(request);
     }
 }

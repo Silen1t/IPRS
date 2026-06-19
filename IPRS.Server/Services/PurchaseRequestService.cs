@@ -15,7 +15,6 @@ public class PurchaseRequestService(
     IUserService userService,
     INotificationService notificationService,
     IDepartmentService departmentService,
-    IHubContext<NotificationHub> notificationHubContext,
     IHubContext<PurchaseRequestHub> purchaseRequestHubContext
 ) : IPurchaseRequestService
 {
@@ -143,7 +142,14 @@ public class PurchaseRequestService(
                 "A justification description is required for requests exceeding 50,000 SAR.");
         }
 
-        request = request.UpdatePurchaseRequest(requestDto);
+        var result = request.UpdatePurchaseRequest(requestDto);
+        if (!result.Success) return ServiceResult<PurchaseRequestResponseDto>.LogFailure(result.Message);
+
+        request = result.Data;
+        if (request == null)
+            return ServiceResult<PurchaseRequestResponseDto>.LogFailure(
+                "Something went wrong while upating the request.");
+
         await requestRepo.SaveChangesAsync();
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -159,10 +165,7 @@ public class PurchaseRequestService(
         if (request.Status != PurchaseRequestStatus.Draft)
             return ServiceResult<PurchaseRequestResponseDto>.LogFailure("Only DRAFT requests can be submitted.");
 
-        request.Status = PurchaseRequestStatus.Pending_Manager;
-        request.UpdatedAt = DateTime.UtcNow;
 
-        await requestRepo.SaveChangesAsync();
         var department = await departmentService.GetDepartmentByIdAsync(request.DepartmentId);
         if (!department.Success)
         {
@@ -176,21 +179,17 @@ public class PurchaseRequestService(
             );
         }
 
-        var notification = await notificationService.CreateNotificationAsync(
-            new CreateNotificationDto(
-                department.Data.ManagerId.Value,
-                $"New procurement request {request.RequestNumber} requires your review.",
-                request.Id
-            )
-        );
-
-        await notificationHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
-            .SendAsync("ReceiveNotification", notification.Data);
-
-        await purchaseRequestHubContext.Clients.User(department.Data.ManagerId.Value.ToString())
-            .SendAsync("ReceiveRequest", request.ToResponse());
-
+        request.Status = PurchaseRequestStatus.Pending_Manager;
+        request.UpdatedAt = DateTime.UtcNow;
         await requestRepo.SaveChangesAsync();
+
+        Guid notifyingUserId = department.Data.ManagerId.Value;
+        string message = $"New procurement request {request.RequestNumber} requires your review.";
+
+        await notificationService.NotifyUserAsync(notifyingUserId, message, request.Id);
+
+        await UpdateClientPurchaseRequest(request, notifyingUserId);
+
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -213,19 +212,13 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
-            (
-                request.RequestedById,
-                $"Your purchase request '{request.Title}' ({request.RequestNumber}) was successfully cancelled.",
-                request.Id
-            )
-        );
+        string message =
+            $"Your purchase request '{request.Title}' ({request.RequestNumber}) was successfully cancelled.";
 
-        await notificationHubContext.Clients.User(request.RequestedById.ToString())
-            .SendAsync("ReceiveNotification", notification.Data);
+        await notificationService.NotifyUserAsync(request.RequestedById, message, request.Id);
 
-        await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
-            .SendAsync("ReceiveRequest", request.ToResponse());
+        await UpdateClientPurchaseRequest(request, request.RequestedById);
+
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
 
@@ -248,35 +241,22 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
-            (
-                request.RequestedById,
-                $"Your purchase request '{request.Title}' ({request.RequestNumber}) was approved by your manager and forwarded to Finance.",
-                request.Id
-            )
-        );
+        string message =
+            $"Your purchase request '{request.Title}' ({request.RequestNumber}) was approved by your manager and forwarded to Finance.";
 
-        await notificationHubContext.Clients.User(request.RequestedById.ToString())
-            .SendAsync("ReceiveNotification", notification.Data);
-
+        await notificationService.NotifyUserAsync(request.RequestedById, message, request.Id);
 
         var financeUsersResult = await userService.GetAllUsersAsync("Finance", null, true);
         if (financeUsersResult is { Success: true, Data: not null })
         {
             foreach (var financeOfficer in financeUsersResult.Data.Where(u => u.IsActive))
             {
-                notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
-                (
-                    financeOfficer.Id,
-                    $"Request {request.RequestNumber} from Department {request.DepartmentId} has been manager-approved and requires financial clearance.",
-                    request.Id
-                ));
+                message =
+                    $"Request {request.RequestNumber} from Department {request.DepartmentId} has been manager-approved and requires financial clearance.";
 
-                await notificationHubContext.Clients.User(financeOfficer.Id.ToString())
-                    .SendAsync("ReceiveNotification", notification.Data);
+                await notificationService.NotifyUserAsync(financeOfficer.Id, message, request.Id);
 
-                await purchaseRequestHubContext.Clients.User(financeOfficer.Id.ToString())
-                    .SendAsync("ReceiveRequest", request.ToResponse());
+                await UpdateClientPurchaseRequest(request, financeOfficer.Id);
             }
         }
 
@@ -301,20 +281,13 @@ public class PurchaseRequestService(
         request.UpdatedAt = DateTime.UtcNow;
 
         await requestRepo.SaveChangesAsync();
+        
+        string message =
+            $"Your purchase request '{request.Title}' ({request.RequestNumber}) was rejected by your manager. Reason: {dto.Note}";
 
-        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
-            (
-                request.RequestedById,
-                $"Your purchase request '{request.Title}' ({request.RequestNumber}) was rejected by your manager. Reason: {dto.Note}",
-                request.Id
-            )
-        );
+        await notificationService.NotifyUserAsync(request.RequestedById, message, request.Id);
 
-        await notificationHubContext.Clients.User(managerUserId.ToString())
-            .SendAsync("ReceiveNotification", notification.Data);
-
-        await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
-            .SendAsync("ReceiveRequest", request.ToResponse());
+        await UpdateClientPurchaseRequest(request, request.RequestedById);
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -337,19 +310,12 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
-            (
-                request.RequestedById,
-                $"🎉 Your purchase request '{request.Title}' ({request.RequestNumber}) has been fully approved! PO Number: {dto.PurchaseOrderNumber}.",
-                request.Id
-            )
-        );
-        await notificationHubContext.Clients.User(financeUserId.ToString())
-            .SendAsync("ReceiveNotification", notification.Data);
+        string message =
+            $"🎉 Your purchase request '{request.Title}' ({request.RequestNumber}) has been fully approved! PO Number: {dto.PurchaseOrderNumber}.";
 
+        await notificationService.NotifyUserAsync(request.RequestedById, message, request.Id);
 
-        await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
-            .SendAsync("ReceiveRequest", request.ToResponse());
+        await UpdateClientPurchaseRequest(request, request.RequestedById);
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -370,18 +336,12 @@ public class PurchaseRequestService(
 
         await requestRepo.SaveChangesAsync();
 
-        var notification = await notificationService.CreateNotificationAsync(new CreateNotificationDto
-            (
-                request.RequestedById,
-                $"Your purchase request '{request.Title}' ({request.RequestNumber}) was rejected by Finance. Reason: {dto.Note}",
-                request.Id
-            )
-        );
-        await notificationHubContext.Clients.User(request.RequestedById.ToString())
-            .SendAsync("ReceiveNotification", notification.Data);
+        string message =
+            $"Your purchase request '{request.Title}' ({request.RequestNumber}) was rejected by Finance. Reason: {dto.Note}";
 
-        await purchaseRequestHubContext.Clients.User(request.RequestedById.ToString())
-            .SendAsync("ReceiveRequest", request.ToResponse());
+        await notificationService.NotifyUserAsync(request.RequestedById, message, request.Id);
+
+        await UpdateClientPurchaseRequest(request, request.RequestedById);
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -403,5 +363,11 @@ public class PurchaseRequestService(
         }
 
         return ServiceResult<bool>.LogSuccess(true);
+    }
+
+    private async Task UpdateClientPurchaseRequest(PurchaseRequest request, Guid clientId)
+    {
+        await purchaseRequestHubContext.Clients.User(clientId.ToString())
+            .SendAsync("ReceiveRequest", request.ToResponse());
     }
 }

@@ -5,6 +5,7 @@ export const notificationResponseSchema = z.object({
   message: z.string(),
   isRead: z.boolean(),
   createdAt: z.iso.datetime(),
+  relatedRequestId: z.guid(),
 });
 
 export type NotificationResponseDto = z.infer<

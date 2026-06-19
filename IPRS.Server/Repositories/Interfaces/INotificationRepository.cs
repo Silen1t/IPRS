@@ -1,5 +1,4 @@
-﻿using IPRS.Server.DTOs;
-using IPRS.Server.Models;
+﻿using IPRS.Server.Models;
 
 namespace IPRS.Server.Repositories.Interfaces;
 
