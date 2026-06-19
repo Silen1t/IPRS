@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import type { UserRole } from '../../types/enums';
 
 interface RoleGuardProps {

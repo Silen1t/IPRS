@@ -106,12 +106,3 @@ export const financeRejectSchema = z.object({
 });
 
 export type FinanceRejectDto = z.infer<typeof financeRejectSchema>;
-
-
-export const purchaseRequestResponseServiceSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-  data: purchaseRequestResponseSchema, 
-});
-
-export type PurchaseRequestResponseService = z.infer<typeof purchaseRequestResponseServiceSchema>;

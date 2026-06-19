@@ -98,7 +98,7 @@ public class PurchaseRequestController(IPurchaseRequestService requestService) :
         var identity = GetUserIdentity();
         if (!identity.IsSuccess) return Unauthorized(identity.Error);
 
-        var result = await requestService.EditRequestAsync(id, requestDto, identity.UserId);
+        var result = await requestService.UpdatingRequestAsync(id, requestDto, identity.UserId);
         if (!result.Success) return BadRequest(result.Message);
 
         return Ok(result.Data);

@@ -124,7 +124,7 @@ public class PurchaseRequestService(
         return ServiceResult<ICollection<PurchaseRequestResponseDto>>.LogSuccess(responseDtos);
     }
 
-    public async Task<ServiceResult<PurchaseRequestResponseDto>> EditRequestAsync(Guid id,
+    public async Task<ServiceResult<PurchaseRequestResponseDto>> UpdatingRequestAsync(Guid id,
         UpdatePurchaseRequestDto requestDto, Guid userId)
     {
         var request = await requestRepo.GetByIdAsync(id);
@@ -183,12 +183,12 @@ public class PurchaseRequestService(
         request.UpdatedAt = DateTime.UtcNow;
         await requestRepo.SaveChangesAsync();
 
-        Guid notifyingUserId = department.Data.ManagerId.Value;
+        Guid sendToUserId = department.Data.ManagerId.Value;
         string message = $"New procurement request {request.RequestNumber} requires your review.";
 
-        await notificationService.NotifyUserAsync(notifyingUserId, message, request.Id);
+        await notificationService.NotifyUserAsync(sendToUserId, message, request.Id);
 
-        await UpdateClientPurchaseRequest(request, notifyingUserId);
+        await UpdateClientPurchaseRequest(request, sendToUserId);
 
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
@@ -245,6 +245,7 @@ public class PurchaseRequestService(
             $"Your purchase request '{request.Title}' ({request.RequestNumber}) was approved by your manager and forwarded to Finance.";
 
         await notificationService.NotifyUserAsync(request.RequestedById, message, request.Id);
+        await UpdateClientPurchaseRequest(request, request.RequestedById);
 
         var financeUsersResult = await userService.GetAllUsersAsync("Finance", null, true);
         if (financeUsersResult is { Success: true, Data: not null })
@@ -281,7 +282,7 @@ public class PurchaseRequestService(
         request.UpdatedAt = DateTime.UtcNow;
 
         await requestRepo.SaveChangesAsync();
-        
+
         string message =
             $"Your purchase request '{request.Title}' ({request.RequestNumber}) was rejected by your manager. Reason: {dto.Note}";
 

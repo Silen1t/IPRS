@@ -5,7 +5,7 @@ import {
 } from '../schemas/auth';
 import { type UserProfile } from '../schemas/user';
 
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore } from '../stores/useAuthStore';
 import { api } from './api';
 
 export async function loginByEmployeeId(credentials: LoginEmployeeId) {

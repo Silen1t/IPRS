@@ -19,8 +19,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/shadcn-ui/components/ui/sidebar';
-import { useAuthStore } from '@/store/useAuthStore';
-import { useNotificationStore } from '@/store/useNotificationStore';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 import {
   EllipsisVerticalIcon,
   CircleUserRoundIcon,

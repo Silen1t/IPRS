@@ -1,63 +1,66 @@
-import { useEffect } from 'react';
+import { useEffect} from 'react';
 import { Outlet } from 'react-router';
-import { useNotificationStore } from '@/store/useNotificationStore';
-import { useAuthStore } from '@/store/useAuthStore';
-import { AppSidebar } from '@/shadcn-ui/components/app-sidebar';
-import { SiteHeader } from '@/shadcn-ui/components/site-header';
+import { useNotificationStore } from '@/stores/useNotificationStore';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { SiteHeader } from '@/components/sidebar/SiteHeader';
 import {
   SidebarInset,
   SidebarProvider,
 } from '@/shadcn-ui/components/ui/sidebar';
-import { usePurchaseRequestStore } from '@/store/usePurchaseRequestStore';
+import usePurchaseRequestStore  from '@/stores/usePurchaseRequestStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
+import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDepartmentStore } from '@/stores/useDepartmentStore';
+import { useUserStore } from '@/stores/useUserStore';
+import { UserRole } from '@/types/enums';
+import { useSignalROrchestrator } from '@/hooks/useSignalROrchestrator';
+import { AppSidebar } from './sidebar/AppSidebar';
 
 export default function DashboardLayout() {
+  useSignalROrchestrator();
   const token = useAuthStore((state) => state.token);
   const role = useAuthStore((state) => state.role);
 
   const initNotifications = useNotificationStore(
     (state) => state.initNotifications
   );
-  const initNotificationSignalR = useNotificationStore(
-    (state) => state.initSignalR
-  );
-  const disconnectNotificationSignalR = useNotificationStore(
-    (state) => state.disconnectSignalR
-  );
 
   const initPurchaseRequests = usePurchaseRequestStore(
     (state) => state.initPurchaseRequests
-  ); 
-  const initRequestSignalR = usePurchaseRequestStore(
-    (state) => state.initSignalR
   );
-  const disconnectRequestSignalR = usePurchaseRequestStore(
-    (state) => state.disconnectSignalR
+
+  const fetchDepartments = useDepartmentStore(
+    (state) => state.fetchDepartments
   );
+  const fetchCategories = useCategoryStore((state) => state.fetchCategories);
+  const fetchProfile = useUserStore((state) => state.fetchProfile);
+  const fetchUsers = useUserStore((state) => state.fetchUsers);
+  const fetchMetrics = useDashboardStore((state) => state.fetchMetrics);
+
 
   useEffect(() => {
     if (!token) return;
 
     initNotifications();
     initPurchaseRequests();
+    fetchProfile();
+    fetchCategories();
+    fetchDepartments();
+    fetchMetrics();
 
-  }, [token, initNotifications, initPurchaseRequests]);
-
-  useEffect(() => {
-    if (!token) return;
-
-    initNotificationSignalR(token);
-    initRequestSignalR(token);
-
-    return () => {
-      disconnectNotificationSignalR();
-      disconnectRequestSignalR();
-    };
+    if (role === UserRole.Admin) {
+      fetchUsers();
+    }
   }, [
     token,
-    initNotificationSignalR,
-    initRequestSignalR,
-    disconnectNotificationSignalR,
-    disconnectRequestSignalR,
+    role,
+    initNotifications,
+    initPurchaseRequests,
+    fetchProfile,
+    fetchCategories,
+    fetchDepartments,
+    fetchMetrics,
+    fetchUsers,
   ]);
 
   return (
@@ -69,16 +72,13 @@ export default function DashboardLayout() {
         } as React.CSSProperties
       }
     >
-      {/* Pass the role to the sidebar so it can hide/show restricted tabs */}
       <AppSidebar variant="inset" userRole={role} />
 
       <SidebarInset>
         <SiteHeader />
 
-        {/* 💻 DYNAMIC MAIN VIEWPORT */}
         <main className="flex flex-1 flex-col overflow-y-auto bg-muted/10 p-4 md:p-6">
           <div className="@container/main max-w-7xl mx-auto w-full space-y-6">
-            {/* React Router safely injects Pages*/}
             <Outlet />
           </div>
         </main>

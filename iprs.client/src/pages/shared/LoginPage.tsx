@@ -1,4 +1,4 @@
-import { LoginForm } from '@/shadcn-ui/components/login-form-custom';
+import { LoginForm } from '@/components/auth/LoginForm';
 
 import {
   Tabs,
@@ -6,7 +6,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/shadcn-ui/components/ui/tabs';
-import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { LoginMethod } from '@/types/enums';
 import { Navigate, useLocation } from 'react-router';
 

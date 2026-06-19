@@ -30,10 +30,25 @@ public class GlobalExceptionMiddleware
         }
     }
 
-    private Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        // 🌟 CRITICAL: If headers are already sent, we cannot modify the status code or content-type headers.
+        if (context.Response.HasStarted)
+        {
+            _logger.LogWarning("The response has already started. Skipping global exception payload serialization.");
+            return;
+        }
+
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+        // 🌟 Feature: Map specific exceptions to semantic HTTP status codes
+        context.Response.StatusCode = exception switch
+        {
+            KeyNotFoundException => (int)HttpStatusCode.NotFound, // 404
+            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized, // 401
+            ArgumentException => (int)HttpStatusCode.BadRequest, // 400
+            _ => (int)HttpStatusCode.InternalServerError // 500
+        };
 
         // Provide full error details only in development mode to guard sensitive data
         string diagnosticMessage = _env.IsDevelopment()
@@ -49,6 +64,8 @@ public class GlobalExceptionMiddleware
         };
 
         var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        return context.Response.WriteAsync(JsonSerializer.Serialize(responseEnvelope, jsonOptions));
+
+        // 🌟 Use clean async/await idiomatically here
+        await context.Response.WriteAsync(JsonSerializer.Serialize(responseEnvelope, jsonOptions));
     }
 }

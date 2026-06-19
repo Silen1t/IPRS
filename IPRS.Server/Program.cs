@@ -76,7 +76,7 @@ builder.Services.AddControllers(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("https://localhost:63257")
+        policy.WithOrigins("https://localhost:63257", "https://localhost:7209")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
@@ -136,7 +136,7 @@ if (app.Environment.IsDevelopment()) app.MapOpenApi();
 app.MapControllers();
 app.MapStaticAssets();
 app.MapFallbackToFile("/index.html");
-app.MapHub<NotificationHub>("api/hubs/notifications");
-app.MapHub<PurchaseRequestHub>("api/hubs/purchase-requests");
+app.MapHub<NotificationHub>("/api/hubs/notifications");
+app.MapHub<PurchaseRequestHub>("/api/hubs/purchase-requests");
 
 app.Run();

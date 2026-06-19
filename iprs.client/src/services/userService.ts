@@ -3,7 +3,6 @@ import {
   type CreateUserDto,
   type UpdateUserDto,
   type UserResponseDto,
-  type UserResponseService,
 } from '../schemas/user'; 
 import { UserRole } from '../types/enums';
 import type { Guid } from 'guid-typescript';
@@ -26,8 +25,8 @@ export async function getAllUsers(
 
 export async function createUser(
   dto: CreateUserDto
-): Promise<UserResponseService> {
-  const res = await api.post<UserResponseService>('users', dto);
+): Promise<UserResponseDto> {
+  const res = await api.post<UserResponseDto>('users', dto);
   return res.data;
 }
 

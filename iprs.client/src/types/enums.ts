@@ -19,6 +19,16 @@ export const PurchaseRequestStatus = {
 export type PurchaseRequestStatus =
   (typeof PurchaseRequestStatus)[keyof typeof PurchaseRequestStatus];
 
+export const WorkflowAction = {
+  Approve_Manager: 'Approve_Manager',
+  Approve_Finance: 'Approve_Finance',
+  Reject: 'Reject',
+  Cancel: 'Cancel',
+} as const;
+
+export type WorkflowAction =
+  (typeof WorkflowAction)[keyof typeof WorkflowAction];
+
 export const UserRole = {
   Employee: 'Employee',
   Manager: 'Manager',
@@ -29,6 +39,6 @@ export const UserRole = {
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 export enum LoginMethod {
-  EmployeeId = 'Employee ID',
-  Email = 'Email',
+  EmployeeId = 'employee ID',
+  Email = 'email',
 }

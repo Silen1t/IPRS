@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { NavDocuments } from '@/shadcn-ui/components/nav-documents';
-import { NavMain } from '@/shadcn-ui/components/nav-main';
-import { NavUser } from '@/shadcn-ui/components/nav-user';
+import { NavDocuments } from '@/components/sidebar/NavRoles';
+import { NavMain } from '@/components/sidebar/NavMain';
+import { NavUser } from '@/components/sidebar/NavUser';
 import {
   Sidebar,
   SidebarContent,
@@ -12,63 +12,28 @@ import {
   SidebarMenuItem,
 } from '@/shadcn-ui/components/ui/sidebar';
 import {
-  LayoutDashboardIcon,
-  UsersIcon,
-  FileChartColumnIcon,
   LayersIcon,
-  Files,
 } from 'lucide-react';
 
-// 🟢 Import your global state engine and roles enum
-import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { UserRole } from '@/types/enums';
-
-// ⚙️ NAVIGATION DATA CONFIGURATION
-// Added an optional 'roles' array to any item that needs protection
-const sidebarData = {
-  navMain: [
-    {
-      title: 'Dashboard',
-      url: 'dashboard',
-      icon: <LayoutDashboardIcon />,
-    },
-    {
-      title: 'Department Requests',
-      url: 'Department',
-      icon: <UsersIcon />,
-      roles: [UserRole.Manager],
-    },
-  ],
-
-  documents: [
-    {
-      name: 'My Requests',
-      url: 'my-requests',
-      icon: <Files />,
-      roles: [UserRole.Employee],
-    },
-    {
-      name: 'Reports',
-      url: 'reports',
-      icon: <FileChartColumnIcon />,
-      roles: [UserRole.Admin],
-    },
-  ],
-};
+import { SIDEBAR_CONFIG } from '@/config/routes';
 
 interface Props extends React.ComponentProps<typeof Sidebar> {
   userRole: UserRole | null;
 }
 
 export function AppSidebar({ userRole, ...props }: Props) {
-  const { fullName, employeeId } = useAuthStore();
+  const { fullName, employeeId} = useAuthStore();
 
-  const filteredNavMain = sidebarData.navMain.filter(
+  const config = SIDEBAR_CONFIG;
+
+  const filteredNavMain = config.navMain.filter(
     (item) =>
       !item.roles || (userRole && (item.roles as UserRole[]).includes(userRole))
   );
 
-  const filteredDocuments = sidebarData.documents.filter(
+  const filteredDocuments = config.roles.filter(
     (doc) =>
       !doc.roles || (userRole && (doc.roles as UserRole[]).includes(userRole))
   );
@@ -81,7 +46,6 @@ export function AppSidebar({ userRole, ...props }: Props) {
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      {/* SIDEBAR HEADER BRANDING */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -98,13 +62,11 @@ export function AppSidebar({ userRole, ...props }: Props) {
         </SidebarMenu>
       </SidebarHeader>
 
-      {/* SIDEBAR NAVIGATION CONTENT AREA */}
       <SidebarContent>
         <NavMain items={filteredNavMain} />
         <NavDocuments items={filteredDocuments} />
       </SidebarContent>
 
-      {/* SIDEBAR USER FOOTER INTERACTION ACCORDION */}
       <SidebarFooter>
         <NavUser user={currentUser} />
       </SidebarFooter>

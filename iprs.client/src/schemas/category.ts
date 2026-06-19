@@ -29,12 +29,3 @@ export const categoryLookupSchema = z.object({
 });
 
 export type CategoryLookupDto = z.infer<typeof categoryLookupSchema>;
-
-
-export const categoryLookupServiceSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-  data: categoryLookupSchema, 
-});
-
-export type CategoryLookupService = z.infer<typeof categoryLookupServiceSchema>;

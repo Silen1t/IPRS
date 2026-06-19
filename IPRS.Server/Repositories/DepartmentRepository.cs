@@ -17,9 +17,14 @@ public class DepartmentRepository(AppDbContext context) : BaseRepository(context
         return await Context.Departments.ToArrayAsync();
     }
 
+    public async Task<bool> NameExistsAsync(string name)
+    {
+        return await Context.Departments.AnyAsync((d) => d.Name == name);
+    }
+
 
     public async Task AddAsync(Department department)
     {
-        await  Context.Departments.AddAsync(department);
+        await Context.Departments.AddAsync(department);
     }
 }

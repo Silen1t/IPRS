@@ -6,7 +6,6 @@ import type {
   ManagerRejectDto,
   ManagerReviewDto,
   PurchaseRequestResponseDto,
-  PurchaseRequestResponseService,
   UpdatePurchaseRequestDto,
 } from '../schemas/purchaseRequest';
 import type { PurchaseRequestStatus } from '../types/enums';
@@ -39,8 +38,8 @@ export async function getPurchaseRequestById(
 
 export async function createPurchaseRequest(
   dto: CreatePurchaseRequestDto
-): Promise<PurchaseRequestResponseService> {
-  const res = await api.post<PurchaseRequestResponseService>('requests', dto);
+): Promise<PurchaseRequestResponseDto> {
+  const res = await api.post<PurchaseRequestResponseDto>('requests', dto);
   return res.data;
 }
 

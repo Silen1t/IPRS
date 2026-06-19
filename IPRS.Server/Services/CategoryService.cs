@@ -22,7 +22,7 @@ public class CategoryService(ICategoryRepository categoryRepo) : ICategoryServic
     {
         if (await categoryRepo.NameExistsAsync(dto.Name))
         {
-            return ServiceResult<CategoryLookupDto>.LogFailure("A category with this name already exists.");
+            return ServiceResult<CategoryLookupDto>.LogFailure("A category with this name already exists. Please try another name.");
         }
 
         Category category = new Category

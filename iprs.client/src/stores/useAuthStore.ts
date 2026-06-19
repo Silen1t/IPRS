@@ -7,7 +7,12 @@ interface AuthState {
   employeeId: string | null;
   fullName: string | null;
   role: UserRole | null;
-  login: (token: string, employeeId: string, fullName: string, role: UserRole) => void; 
+  login: (
+    token: string,
+    employeeId: string,
+    fullName: string,
+    role: UserRole
+  ) => void;
   logout: () => void;
   isLoggedIn: () => boolean;
 }
@@ -31,9 +36,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem('iprs_emp_id');
     localStorage.removeItem('iprs_full_name');
     localStorage.removeItem('iprs_role');
-    
+
     toast.success('You logged out successfully....');
-    
+
     set({ token: null, employeeId: null, fullName: null, role: null });
   },
 

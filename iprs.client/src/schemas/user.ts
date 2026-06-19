@@ -53,11 +53,3 @@ export const userSummaryResponseSchema = z.object({
 });
 
 export type UserSummaryResponse = z.infer<typeof userSummaryResponseSchema>;
-
-export const userResponseServiceSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-  data: userResponseSchema, 
-});
-
-export type UserResponseService = z.infer<typeof userResponseServiceSchema>;

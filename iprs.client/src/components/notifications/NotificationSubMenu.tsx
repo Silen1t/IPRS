@@ -9,10 +9,11 @@ import {
   DropdownMenuSubTrigger,
 } from '@/shadcn-ui/components/ui/dropdown-menu';
 import { cn } from '@/shadcn-ui/lib/utils';
-import { useNotificationStore } from '@/store/useNotificationStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 import { Guid } from 'guid-typescript';
 import { useNavigate } from 'react-router';
 import { FormatDate } from '@/utils/date';
+import { ROUTES } from '@/config/routes';
 
 export default function NotificationSubMenu() {
   const notifications = useNotificationStore((state) => state.notifications);
@@ -137,7 +138,7 @@ export default function NotificationSubMenu() {
           size="sm"
           className="w-full text-xs font-medium justify-center h-8 text-muted-foreground hover:text-foreground"
           onClick={() => {
-            nav('notifications', { replace: true });
+            nav(ROUTES.notifications, { replace: true });
           }}
         >
           View all history

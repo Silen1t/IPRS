@@ -1,3 +1,4 @@
+import { ROUTES } from '@/config/routes';
 import type { NotificationResponseDto } from '@/schemas/notification';
 import { Button } from '@/shadcn-ui/components/ui/button';
 import {
@@ -60,7 +61,7 @@ export default function NotificationDialog({
                   size="sm"
                   className="w-full sm:w-auto"
                   onClick={() => {
-                    nav(`requests/${selectedNotification.relatedRequestId}`);
+                    nav(`${ROUTES.requests.detail(selectedNotification.relatedRequestId)}`, {replace: true});
                     setSelectedNotification(null);
                   }}
                 >
