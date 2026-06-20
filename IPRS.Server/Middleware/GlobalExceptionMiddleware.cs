@@ -1,12 +1,5 @@
 ﻿using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Hosting;
-
-// Assuming a custom domain exception namespace exists, e.g.:
-using IPRS.Server.Exceptions; 
 
 namespace IPRS.Server.Middleware;
 
@@ -52,17 +45,15 @@ public class GlobalExceptionMiddleware
             KeyNotFoundException => (int)HttpStatusCode.NotFound, // 404
             UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized, // 401
 
-            DomainValidationException => (int)HttpStatusCode.BadRequest, // 400
+            ArgumentException => (int)HttpStatusCode.BadRequest, // 400
 
             _ => (int)HttpStatusCode.InternalServerError // 500
         };
 
-        // Provide full error details only in development mode to guard sensitive data
         string diagnosticMessage = _env.IsDevelopment()
             ? exception.ToString()
             : "An unexpected internal server error occurred. Please contact the system administrator.";
 
-        // Keep your API payload contract identical to your standard ServiceResult wrapper
         var responseEnvelope = new
         {
             success = false,
@@ -75,7 +66,6 @@ public class GlobalExceptionMiddleware
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        // 🌟 Optimization: Stream JSON directly to the response body instead of allocating a string buffer
         await context.Response.WriteAsJsonAsync(responseEnvelope, jsonOptions);
     }
 }

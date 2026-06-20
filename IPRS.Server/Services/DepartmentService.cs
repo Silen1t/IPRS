@@ -42,13 +42,6 @@ public class DepartmentService(IDepartmentRepository departmentRepo) : IDepartme
     public async Task<ServiceResult<DepartmentResponseDto>> UpdateDepartmentByIdAsync(int id,
         UpdateDepartmentDto request)
     {
-        var existingCollision = await departmentRepo.GetByNameAsync(request.Name);
-        if (existingCollision != null && existingCollision.Id != id)
-        {
-            return ServiceResult<DepartmentResponseDto>.LogFailure(
-                "A department with this name already exists. Please try another name.");
-        }
-        
         Department? department = await departmentRepo.GetByIdAsync(id);
         if (department == null)
             return ServiceResult<DepartmentResponseDto>.LogFailure("Department not found.");
@@ -60,7 +53,16 @@ public class DepartmentService(IDepartmentRepository departmentRepo) : IDepartme
         }
         else if (request.ManagerId != null) department.ManagerId = request.ManagerId;
 
-        if (request.Name != null) department.Name = request.Name;
+        if (request.Name != null)
+        {
+            var existingCollision = await departmentRepo.GetByNameAsync(request.Name);
+            if (existingCollision != null && existingCollision.Id != id)
+                return ServiceResult<DepartmentResponseDto>.LogFailure(
+                    "A department with this name already exists. Please try another name.");
+            
+            department.Name = request.Name;
+        }
+
 
         await departmentRepo.SaveChangesAsync();
 
