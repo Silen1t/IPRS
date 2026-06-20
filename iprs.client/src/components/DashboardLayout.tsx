@@ -1,17 +1,17 @@
 import { useEffect} from 'react';
 import { Outlet } from 'react-router';
-import { useNotificationStore } from '@/stores/useNotificationStore';
-import { useAuthStore } from '@/stores/useAuthStore';
+import useNotificationStore from '@/stores/useNotificationStore';
+import useAuthStore  from '@/stores/useAuthStore';
 import { SiteHeader } from '@/components/sidebar/SiteHeader';
 import {
   SidebarInset,
   SidebarProvider,
 } from '@/shadcn-ui/components/ui/sidebar';
 import usePurchaseRequestStore  from '@/stores/usePurchaseRequestStore';
-import { useCategoryStore } from '@/stores/useCategoryStore';
-import { useDashboardStore } from '@/stores/useDashboardStore';
-import { useDepartmentStore } from '@/stores/useDepartmentStore';
-import { useUserStore } from '@/stores/useUserStore';
+import useCategoryStore from '@/stores/useCategoryStore';
+import  useDashboardStore from '@/stores/useDashboardStore';
+import useDepartmentStore from '@/stores/useDepartmentStore';
+import useUserStore  from '@/stores/useUserStore';
 import { UserRole } from '@/types/enums';
 import { useSignalROrchestrator } from '@/hooks/useSignalROrchestrator';
 import { AppSidebar } from './sidebar/AppSidebar';

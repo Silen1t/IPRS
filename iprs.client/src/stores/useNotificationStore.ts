@@ -16,15 +16,23 @@ import {
 interface NotificationState {
   notifications: NotificationResponseDto[];
   connection: HubConnection | null;
-  unreadCount: () => number;
-  initNotifications: () => void;
   initSignalR: (token: string) => void;
   disconnectSignalR: () => void;
+  unreadCount: () => number;
+  initNotifications: () => void;
+  refreshNotifications: () => Promise<void>;
   markAsRead: (id: Guid) => void;
   markAllAsRead: () => void;
 }
 
-export const useNotificationStore = create<NotificationState>((set, get) => ({
+interface NotificationsSyncMessage {
+  type: 'NOTIFICATIONS_UPDATED';
+}
+
+const CHANNEL_NAME = 'notifications_sync';
+const channel = new BroadcastChannel(CHANNEL_NAME);
+
+const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
   connection: null,
 
@@ -36,6 +44,33 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     };
     getNotifications();
   },
+  markAsRead: async (id) => {
+    await readNotification(id);
+    set((state) => ({
+      notifications: state.notifications.map((n) =>
+        n.id === id.toString() ? { ...n, isRead: true } : n
+      ),
+    }));
+  },
+
+  markAllAsRead: async () => {
+    await readAllNotifications();
+    set((state) => ({
+      notifications: state.notifications.map((n) => ({
+        ...n,
+        isRead: true,
+      })),
+    }));
+  },
+
+  refreshNotifications: async () => {
+    const data = await getAllNotifications();
+    set({ notifications: data });
+    channel.postMessage({
+      type: 'NOTIFICATIONS_UPDATED',
+    } satisfies NotificationsSyncMessage);
+  },
+
   initSignalR: (token: string) => {
     if (get().connection) return;
 
@@ -79,23 +114,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       set({ connection: null });
     }
   },
-
-  markAsRead: async (id) => {
-    await readNotification(id);
-    set((state) => ({
-      notifications: state.notifications.map((n) =>
-        n.id === id.toString() ? { ...n, isRead: true } : n
-      ),
-    }));
-  },
-
-  markAllAsRead: async () => {
-    await readAllNotifications();
-    set((state) => ({
-      notifications: state.notifications.map((n) => ({
-        ...n,
-        isRead: true,
-      })),
-    }));
-  },
 }));
+
+channel.onmessage = (event: MessageEvent<NotificationsSyncMessage>) => {
+  if (event.data?.type === 'NOTIFICATIONS_UPDATED') {
+    useNotificationStore.getState().refreshNotifications();
+  }
+};
+
+export default useNotificationStore;

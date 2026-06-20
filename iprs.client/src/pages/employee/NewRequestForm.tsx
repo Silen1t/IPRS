@@ -17,7 +17,7 @@ import { SaudiRiyal } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import usePurchaseRequestStore from '@/stores/usePurchaseRequestStore';
-import { useCategoryStore } from '@/stores/useCategoryStore';
+import useCategoryStore from '@/stores/useCategoryStore';
 import { toast } from 'sonner';
 import { Guid } from 'guid-typescript';
 

@@ -1,4 +1,4 @@
-import { useNotificationStore } from '@/stores/useNotificationStore';
+import useNotificationStore from '@/stores/useNotificationStore';
 import type { NotificationResponseDto } from '@/schemas/notification';
 
 import { Button } from '@/shadcn-ui/components/ui/button';

@@ -29,7 +29,7 @@ public class DepartmentService(IDepartmentRepository departmentRepo) : IDepartme
 
     public async Task<ServiceResult<DepartmentResponseDto>> CreateDepartmentAsync(CreateDepartmentDto request)
     {
-        if (!await departmentRepo.NameExistsAsync(request.Name))
+        if (await departmentRepo.NameExistsAsync(request.Name))
             return ServiceResult<DepartmentResponseDto>.LogFailure(
                 "A department with this name already exists. Please try another name.");
         var newDepartment = request.ToEntity();
@@ -42,6 +42,13 @@ public class DepartmentService(IDepartmentRepository departmentRepo) : IDepartme
     public async Task<ServiceResult<DepartmentResponseDto>> UpdateDepartmentByIdAsync(int id,
         UpdateDepartmentDto request)
     {
+        var existingCollision = await departmentRepo.GetByNameAsync(request.Name);
+        if (existingCollision != null && existingCollision.Id != id)
+        {
+            return ServiceResult<DepartmentResponseDto>.LogFailure(
+                "A department with this name already exists. Please try another name.");
+        }
+        
         Department? department = await departmentRepo.GetByIdAsync(id);
         if (department == null)
             return ServiceResult<DepartmentResponseDto>.LogFailure("Department not found.");

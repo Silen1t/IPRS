@@ -1,13 +1,13 @@
 import { create } from 'zustand';
-import type { 
-  CategoryLookupDto, 
-  CreateCategoryDto, 
-  UpdateCategoryDto 
+import type {
+  CategoryLookupDto,
+  CreateCategoryDto,
+  UpdateCategoryDto,
 } from '@/schemas/category';
-import { 
-  getAllActiveCategories, 
-  createCategory, 
-  updateCategory 
+import {
+  getAllActiveCategories,
+  createCategory,
+  updateCategory,
 } from '@/services/categoryService';
 
 interface CategoryState {
@@ -18,7 +18,7 @@ interface CategoryState {
   modifyCategory: (id: number, dto: UpdateCategoryDto) => Promise<void>;
 }
 
-export const useCategoryStore = create<CategoryState>((set) => ({
+const useCategoryStore = create<CategoryState>((set) => ({
   categories: [],
   isLoading: false,
 
@@ -28,7 +28,8 @@ export const useCategoryStore = create<CategoryState>((set) => ({
       const lookups = await getAllActiveCategories();
       set({ categories: lookups });
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to fetch lookup categories:', err);
+      if (import.meta.env.DEV)
+        console.error('Failed to fetch lookup categories:', err);
     } finally {
       set({ isLoading: false });
     }
@@ -37,11 +38,14 @@ export const useCategoryStore = create<CategoryState>((set) => ({
   addCategory: async (dto) => {
     try {
       const responseService = await createCategory(dto);
-      if (responseService.success) {
-        set((state) => ({ categories: [...state.categories, responseService.data] }));
+      if (responseService) {
+        set((state) => ({
+          categories: [...state.categories, responseService],
+        }));
       }
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Category configuration failure:', err);
+      if (import.meta.env.DEV)
+        console.error('Category configuration failure:', err);
       throw err;
     }
   },
@@ -51,7 +55,9 @@ export const useCategoryStore = create<CategoryState>((set) => ({
       const responseService = await updateCategory(id, dto);
       if (responseService) {
         set((state) => ({
-          categories: state.categories.map((c) => (c.id === id ? responseService : c)),
+          categories: state.categories.map((c) =>
+            c.id === id ? responseService : c
+          ),
         }));
       }
     } catch (err) {
@@ -60,3 +66,5 @@ export const useCategoryStore = create<CategoryState>((set) => ({
     }
   },
 }));
+
+export default useCategoryStore;

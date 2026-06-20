@@ -17,7 +17,7 @@ interface AuthState {
   isLoggedIn: () => boolean;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+const useAuthStore = create<AuthState>((set, get) => ({
   token: localStorage.getItem('iprs_token'),
   employeeId: localStorage.getItem('iprs_emp_id'),
   fullName: localStorage.getItem('iprs_full_name'),
@@ -44,3 +44,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   isLoggedIn: () => get().token !== null,
 }));
+
+export default useAuthStore;

@@ -15,7 +15,7 @@ import {
   LayersIcon,
 } from 'lucide-react';
 
-import { useAuthStore } from '@/stores/useAuthStore';
+import useAuthStore  from '@/stores/useAuthStore';
 import { UserRole } from '@/types/enums';
 import { SIDEBAR_CONFIG } from '@/config/routes';
 

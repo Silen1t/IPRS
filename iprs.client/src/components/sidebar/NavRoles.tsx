@@ -7,7 +7,7 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
 } from '@/shadcn-ui/components/ui/sidebar';
-import { useAuthStore } from '@/stores/useAuthStore';
+import useAuthStore  from '@/stores/useAuthStore';
 import { Fragment } from 'react';
 import { useNavigate } from 'react-router';
 

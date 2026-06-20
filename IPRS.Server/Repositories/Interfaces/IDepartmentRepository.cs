@@ -8,4 +8,5 @@ public interface IDepartmentRepository : IBaseRepository
     Task<ICollection<Department>> GetAllAsync();
     Task<bool> NameExistsAsync(string name);
     Task AddAsync(Department department);
+    Task<Department?> GetByNameAsync(string? requestName);
 }

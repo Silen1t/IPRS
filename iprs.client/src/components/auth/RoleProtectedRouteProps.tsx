@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router';
-import { useAuthStore } from '@/stores/useAuthStore';
+import useAuthStore  from '@/stores/useAuthStore';
 import type { UserRole } from '../../types/enums';
 
 interface RoleProtectedRouteProps {

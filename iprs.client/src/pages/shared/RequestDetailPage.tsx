@@ -30,16 +30,18 @@ export default function RequestDetailPage() {
     refresh();
   }, [refreshPurchaseRequests]);
 
-  const { request, loading, resolvedCategory, resolvedDepartment } =
+  const { request, loading, error, resolvedCategory, resolvedDepartment } =
     useRequestDetailsWorkflow(requestId);
 
   if (loading && !request) return <RequestLoadingState />;
-  if (!request)
+
+  if (!request || error) {
     return (
       <RequestNotFoundState
         onReturn={() => navigate(ROUTES.dashboard.home, { replace: true })}
       />
     );
+  }
 
   return (
     <div className="w-full mx-auto p-6 space-y-8 text-foreground min-h-screen">

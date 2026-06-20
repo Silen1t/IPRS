@@ -1,5 +1,12 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
+
+// Assuming a custom domain exception namespace exists, e.g.:
+using IPRS.Server.Exceptions; 
 
 namespace IPRS.Server.Middleware;
 
@@ -32,7 +39,6 @@ public class GlobalExceptionMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        // 🌟 CRITICAL: If headers are already sent, we cannot modify the status code or content-type headers.
         if (context.Response.HasStarted)
         {
             _logger.LogWarning("The response has already started. Skipping global exception payload serialization.");
@@ -41,12 +47,13 @@ public class GlobalExceptionMiddleware
 
         context.Response.ContentType = "application/json";
 
-        // 🌟 Feature: Map specific exceptions to semantic HTTP status codes
         context.Response.StatusCode = exception switch
         {
             KeyNotFoundException => (int)HttpStatusCode.NotFound, // 404
             UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized, // 401
-            ArgumentException => (int)HttpStatusCode.BadRequest, // 400
+
+            DomainValidationException => (int)HttpStatusCode.BadRequest, // 400
+
             _ => (int)HttpStatusCode.InternalServerError // 500
         };
 
@@ -63,9 +70,12 @@ public class GlobalExceptionMiddleware
             data = (object?)null
         };
 
-        var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
-        // 🌟 Use clean async/await idiomatically here
-        await context.Response.WriteAsync(JsonSerializer.Serialize(responseEnvelope, jsonOptions));
+        // 🌟 Optimization: Stream JSON directly to the response body instead of allocating a string buffer
+        await context.Response.WriteAsJsonAsync(responseEnvelope, jsonOptions);
     }
 }

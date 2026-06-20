@@ -27,4 +27,9 @@ public class DepartmentRepository(AppDbContext context) : BaseRepository(context
     {
         await Context.Departments.AddAsync(department);
     }
+
+    public async Task<Department?> GetByNameAsync(string? requestName)
+    {
+        return await Context.Departments.FirstOrDefaultAsync((d) => d.Name == requestName);
+    }
 }

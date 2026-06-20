@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import usePurchaseRequestStore from '../stores/usePurchaseRequestStore';
-import { useAuthStore } from '../stores/useAuthStore';
-import { useCategoryStore } from '../stores/useCategoryStore';
-import { useDepartmentStore } from '../stores/useDepartmentStore';
+import usePurchaseRequestStore from '@/stores/usePurchaseRequestStore';
+import useAuthStore  from '@/stores/useAuthStore';
+import useCategoryStore from '@/stores/useCategoryStore';
+import useDepartmentStore from '@/stores/useDepartmentStore';
 import { PurchaseRequestStatus, UserRole, WorkflowAction } from '@/types/enums';
 
 import {
@@ -27,6 +27,7 @@ export interface WorkflowPayload {
 interface UseRequestDetailsWorkflowReturn {
   request: PurchaseRequestResponseDto | null;
   loading: boolean;
+  error: boolean; // 🌟 Added to interface contract
   isAuthorizedForAction: boolean;
   showWorkflowPanel: boolean;
   resolvedCategory: CategoryLookupDto | null;
@@ -36,6 +37,8 @@ interface UseRequestDetailsWorkflowReturn {
 
 export const useRequestDetailsWorkflow = (requestId: string | undefined): UseRequestDetailsWorkflowReturn => {
   const [isActionProcessing, setIsActionProcessing] = useState<boolean>(false);
+  const [isRequestsLoading, setIsRequestsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<boolean>(false); // 🌟 Added local error state tracking
 
   const { purchaseRequests, initPurchaseRequests, updateSingleRequestInStore } = usePurchaseRequestStore();
   const { role: currentUserRole, employeeId: currentUserEmpId } = useAuthStore();
@@ -43,9 +46,27 @@ export const useRequestDetailsWorkflow = (requestId: string | undefined): UseReq
   const { departments, fetchDepartments, isLoading: isDepartmentLoading } = useDepartmentStore();
 
   useEffect(() => {
-    if (purchaseRequests.length === 0) initPurchaseRequests();
-    if (categories.length === 0) fetchCategories();
-    if (departments.length === 0) fetchDepartments();
+    const initializeData = async () => {
+      try {
+        setError(false); // Reset error state on sync attempt
+        const initializationPromises = [];
+        
+        if (purchaseRequests.length === 0) initializationPromises.push(initPurchaseRequests());
+        if (categories.length === 0) initializationPromises.push(fetchCategories());
+        if (departments.length === 0) initializationPromises.push(fetchDepartments());
+        
+        if (initializationPromises.length > 0) {
+          await Promise.all(initializationPromises);
+        }
+      } catch (err) {
+        console.error("[Workflow Init Error]: Failed to populate core application caches.", err);
+        setError(true); // 🌟 Trip the error flag if any core network call drops out
+      } finally {
+        setIsRequestsLoading(false); 
+      }
+    };
+
+    initializeData();
   }, [purchaseRequests.length, categories.length, departments.length, initPurchaseRequests, fetchCategories, fetchDepartments]);
 
   const request = useMemo(() => {
@@ -91,7 +112,7 @@ export const useRequestDetailsWorkflow = (requestId: string | undefined): UseReq
     return !isTerminalState && isAuthorizedForAction;
   }, [request, isAuthorizedForAction]);
 
-  const loading = isActionProcessing || isCategoryLoading || isDepartmentLoading || (purchaseRequests.length === 0);
+  const loading = isActionProcessing || isCategoryLoading || isDepartmentLoading || isRequestsLoading;
 
   const handleWorkflowExecution = useCallback(async (
     actionType: WorkflowAction, 
@@ -121,7 +142,6 @@ export const useRequestDetailsWorkflow = (requestId: string | undefined): UseReq
           break;
 
         case WorkflowAction.Reject:
-          // Smart-route rejections based on the current step in the lifecycle state machine
           if (request.status === PurchaseRequestStatus.Pending_Manager) {
             updatedRequest = await managerRejectPurchaseRequest(Guid.parse(requestId), {
               note: payload?.note ?? 'Rejected by operational manager.'
@@ -162,6 +182,7 @@ export const useRequestDetailsWorkflow = (requestId: string | undefined): UseReq
   return {
     request,
     loading,
+    error, // 🌟 Now safely returning the error state to your page destructuring
     isAuthorizedForAction,
     showWorkflowPanel,
     resolvedCategory,

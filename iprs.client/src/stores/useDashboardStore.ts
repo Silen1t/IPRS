@@ -18,7 +18,7 @@ interface DashboardState {
   resetDashboard: () => void;
 }
 
-export const useDashboardStore = create<DashboardState>((set) => ({
+const useDashboardStore = create<DashboardState>((set) => ({
   stats: null,
   reportSummary: null,
   isLoadingStats: false,
@@ -52,3 +52,5 @@ export const useDashboardStore = create<DashboardState>((set) => ({
 
   resetDashboard: () => set({ stats: null, reportSummary: null }),
 }));
+
+export default useDashboardStore;

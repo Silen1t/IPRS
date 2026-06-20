@@ -1,5 +1,5 @@
 import { Badge } from '@/shadcn-ui/components/ui/badge';
-import { useCategoryStore } from '@/stores/useCategoryStore';
+import useCategoryStore from '@/stores/useCategoryStore';
 
 interface CategoryCellProps {
   categoryId: string | number;

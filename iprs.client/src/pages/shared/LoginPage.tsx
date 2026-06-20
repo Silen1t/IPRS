@@ -6,7 +6,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/shadcn-ui/components/ui/tabs';
-import { useAuthStore } from '@/stores/useAuthStore';
+import useAuthStore  from '@/stores/useAuthStore';
 import { LoginMethod } from '@/types/enums';
 import { Navigate, useLocation } from 'react-router';
 

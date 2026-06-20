@@ -9,7 +9,7 @@ import {
   DropdownMenuSubTrigger,
 } from '@/shadcn-ui/components/ui/dropdown-menu';
 import { cn } from '@/shadcn-ui/lib/utils';
-import { useNotificationStore } from '@/stores/useNotificationStore';
+import useNotificationStore from '@/stores/useNotificationStore';
 import { Guid } from 'guid-typescript';
 import { useNavigate } from 'react-router';
 import { FormatDate } from '@/utils/date';

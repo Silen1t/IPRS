@@ -18,7 +18,7 @@ interface DepartmentState {
   modifyDepartment: (id: number, dto: UpdateDepartmentDto) => Promise<void>;
 }
 
-export const useDepartmentStore = create<DepartmentState>((set) => ({
+const useDepartmentStore = create<DepartmentState>((set) => ({
   departments: [],
   isLoading: false,
 
@@ -56,3 +56,5 @@ export const useDepartmentStore = create<DepartmentState>((set) => ({
     }
   },
 }));
+
+export default useDepartmentStore;

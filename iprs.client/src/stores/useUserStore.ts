@@ -24,7 +24,7 @@ interface UserState {
   clearProfile: () => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+const useUserStore = create<UserState>((set) => ({
   users: [],
   profile: null,
   isLoading: false,
@@ -53,8 +53,8 @@ export const useUserStore = create<UserState>((set) => ({
   addUser: async (dto) => {
     try {
       const responseService = await createUser(dto);
-      if (responseService.success) {
-        set((state) => ({ users: [...state.users, responseService.data] }));
+      if (responseService) {
+        set((state) => ({ users: [...state.users, responseService] }));
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error('User registration failure:', err);
@@ -78,3 +78,5 @@ export const useUserStore = create<UserState>((set) => ({
 
   clearProfile: () => set({ profile: null }),
 }));
+
+export default useUserStore;

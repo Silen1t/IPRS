@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { useAuthStore } from '../stores/useAuthStore';
+import useAuthStore  from '../stores/useAuthStore';
 import { toast } from 'sonner';
 
 export const api = axios.create({
