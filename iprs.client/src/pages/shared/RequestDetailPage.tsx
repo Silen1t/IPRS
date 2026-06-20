@@ -11,10 +11,13 @@ import RequestDetailHeader from '@/components/requests/detaill/RequestDetailHead
 import RequestLoadingState from '@/components/requests/detaill/RequestLoadingState';
 import RequestNotFoundState from '@/components/requests/detaill/RequestNotFoundState';
 import WorkflowTimeline from '@/components/requests/detaill/WorkflowTimeline';
-import { useRequestDetailsWorkflow } from '@/hooks/useRequestDetailsWorkflow';
+import useRequestDetailsWorkflow from '@/hooks/useRequestDetailsWorkflow';
 import { ROUTES } from '@/config/routes';
 import usePurchaseRequestStore from '@/stores/usePurchaseRequestStore';
 import { useEffect } from 'react';
+import WorkflowActionPanel from '@/components/requests/detaill/WorkflowActionPanel';
+import { useHeaderTitle } from '@/contexts/HeaderTitleContext';
+import { PurchaseRequestStatus } from '@/types/enums';
 
 export default function RequestDetailPage() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -22,6 +25,18 @@ export default function RequestDetailPage() {
     (state) => state.refreshPurchaseRequests
   );
   const navigate = useNavigate();
+  const { setTitle } = useHeaderTitle();
+
+  const {
+    request,
+    loading,
+    error,
+    resolvedCategory,
+    resolvedDepartment,
+    isAuthorizedForAction,
+    showWorkflowPanel,
+    handleWorkflowExecution,
+  } = useRequestDetailsWorkflow(requestId);
 
   useEffect(() => {
     const refresh = async () => {
@@ -30,8 +45,11 @@ export default function RequestDetailPage() {
     refresh();
   }, [refreshPurchaseRequests]);
 
-  const { request, loading, error, resolvedCategory, resolvedDepartment } =
-    useRequestDetailsWorkflow(requestId);
+  useEffect(() => {
+    if (request?.title) {
+      setTitle(request.title);
+    }
+  }, [request?.title, setTitle]);
 
   if (loading && !request) return <RequestLoadingState />;
 
@@ -43,8 +61,11 @@ export default function RequestDetailPage() {
     );
   }
 
+  const renderPanel =
+    showWorkflowPanel && request.status !== PurchaseRequestStatus.Rejected;
+
   return (
-    <div className="w-full mx-auto p-6 space-y-8 text-foreground min-h-screen">
+    <div className="w-full mx-auto p-6 space-y-8 text-foreground min-h-screen flex flex-col">
       <Button
         variant="ghost"
         size="sm"
@@ -62,25 +83,57 @@ export default function RequestDetailPage() {
         urgency={request.urgencyLevel}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-6">
+      {/* Main Container Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch flex-1">
+        {/* Right Sidebar Column */}
+        <div className="order-first lg:order-2 col-span-1 flex flex-col gap-6">
+          <AccountabilityCard
+            requestedBy={request.requestedBy}
+            departmentName={resolvedDepartment?.name ?? 'Unassigned Department'}
+          />
+
+          {renderPanel ? (
+            <div className="hidden lg:block">
+              <WorkflowActionPanel
+                isAuthorizedForAction={isAuthorizedForAction}
+                onActionSubmit={handleWorkflowExecution}
+                status={request.status}
+              />
+            </div>
+          ) : (
+            /* 🌟 Fallback empty flex growth element to safely occupy alignment height when panel is missing on desktop */
+            <div className="hidden lg:block flex-1" />
+          )}
+        </div>
+
+        {/* Left Main Column Stack */}
+        <div className="order-2 lg:order-1 col-span-1 lg:col-span-2 flex flex-col gap-6">
           <LineItemSummaryCard
             createdAt={request.createdAt}
             unitPrice={request.unitPrice}
             quantity={request.quantity}
             categoryName={resolvedCategory?.name ?? `ID: ${request.categoryId}`}
           />
-        </div>
 
-        <div className="space-y-6">
-          <AccountabilityCard
-            requestedBy={request.requestedBy}
-            departmentName={resolvedDepartment?.name ?? 'Unassigned Department'}
-          />
+          {/* Business Justification Container */}
+          <div className="flex-1 flex flex-col min-h-62.5">
+            <BusinessJustificationCard
+              description={request.description}
+              className="flex-1 h-full w-full"
+            />
+          </div>
+
+          {renderPanel && (
+            <div className="block lg:hidden w-full">
+              <WorkflowActionPanel
+                isAuthorizedForAction={isAuthorizedForAction}
+                onActionSubmit={handleWorkflowExecution}
+                status={request.status}
+              />
+            </div>
+          )}
         </div>
       </div>
-
-      <BusinessJustificationCard description={request.description} />
 
       <WorkflowTimeline request={request} />
     </div>

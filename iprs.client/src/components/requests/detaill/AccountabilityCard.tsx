@@ -12,14 +12,16 @@ interface AccountabilityCardProps {
     email?: string;
   };
   departmentName: string;
+  className?: string | null
 }
 
 export default function AccountabilityCard({
   requestedBy,
   departmentName,
+  className
 }: AccountabilityCardProps) {
   return (
-    <Card className="shadow-sm">
+    <Card className={`shadow-sm ${className}`}>
       <CardHeader>
         <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           Accountability

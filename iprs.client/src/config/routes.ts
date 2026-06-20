@@ -4,7 +4,6 @@ import {
   Users,
   FileText,
   Bell,
-  Files,
   FileChartColumn, // Standard lucide naming convention
 } from 'lucide-react';
 import { UserRole } from '@/types/enums';
@@ -67,12 +66,6 @@ export const SIDEBAR_CONFIG = {
   ] as NavItem[],
 
   roles: [
-    {
-      title: 'My Requests',
-      url: ROUTES.requests.myRequests, 
-      icon: Files,
-      roles: [UserRole.Employee],
-    },
     {
       title: 'Reports',
       url: ROUTES.dashboard.reports, 

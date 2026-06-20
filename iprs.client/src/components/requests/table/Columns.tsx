@@ -1,20 +1,22 @@
 import { type ColumnDef } from '@tanstack/react-table';
 import { z } from 'zod';
-import { CircleCheckIcon, LoaderIcon, SaudiRiyal } from 'lucide-react';
+import {
+  CircleCheckIcon,
+  LoaderIcon,
+  SaudiRiyal,
+  XCircleIcon,
+} from 'lucide-react';
 import { Badge } from '@/shadcn-ui/components/ui/badge';
 import { purchaseRequestResponseSchema } from '@/schemas/purchaseRequest';
 import { PurchaseRequestStatus } from '@/types/enums';
 import { TableCellViewer } from './TableCellViewer';
 import { CategoryCell } from './CategoryCell';
 import { FormatDate } from '@/utils/date';
+import QuickActions from './QuickActions';
 
-export const columns: ColumnDef<z.infer<typeof purchaseRequestResponseSchema>>[] = [
-  {
-    accessorKey: 'requestNumber',
-    header: 'Request Number',
-    cell: ({ row }) => <TableCellViewer item={row.original} />,
-    enableHiding: false,
-  },
+export const columns: ColumnDef<
+  z.infer<typeof purchaseRequestResponseSchema>
+>[] = [
   {
     accessorKey: 'title',
     header: 'Title',
@@ -23,6 +25,12 @@ export const columns: ColumnDef<z.infer<typeof purchaseRequestResponseSchema>>[]
         {row.original.title}
       </span>
     ),
+  },
+  {
+    accessorKey: 'requestNumber',
+    header: 'Request Number',
+    cell: ({ row }) => <TableCellViewer item={row.original} />,
+    enableHiding: false,
   },
   {
     accessorKey: 'category',
@@ -56,6 +64,13 @@ export const columns: ColumnDef<z.infer<typeof purchaseRequestResponseSchema>>[]
       </Badge>
     ),
   },
+  { 
+    accessorKey: 'quickActions',
+    header: 'Quick Actions',
+    cell: ({ row }) => (
+      <QuickActions request={row.original}/>
+    ),
+  },
   {
     accessorKey: 'status',
     header: 'Status',
@@ -63,6 +78,8 @@ export const columns: ColumnDef<z.infer<typeof purchaseRequestResponseSchema>>[]
       <Badge variant="outline" className="flex items-center gap-1 w-fit px-1.5">
         {row.original.status === PurchaseRequestStatus.Approved ? (
           <CircleCheckIcon className="size-3.5 fill-green-500 text-background dark:fill-green-400" />
+        ) : row.original.status === PurchaseRequestStatus.Rejected ? (
+          <XCircleIcon className="size-3.5 fill-red-500 dark:fill-red-400 text-background" />
         ) : (
           <LoaderIcon className="size-3.5 animate-spin text-muted-foreground" />
         )}

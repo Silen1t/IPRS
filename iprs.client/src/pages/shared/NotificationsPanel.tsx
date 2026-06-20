@@ -6,10 +6,13 @@ import { Inbox } from 'lucide-react';
 import { useState } from 'react';
 import NotificationCard from '@/components/notifications/NotificationCard';
 import NotificationDialog from '@/components/notifications/NotificationDialog';
+import { useHeaderTitle } from '@/contexts/HeaderTitleContext';
 
 export default function NotificationsPanel() {
   const notifications = useNotificationStore((state) => state.notifications);
-
+  const { setTitle } = useHeaderTitle();
+  setTitle('Notifications');
+  
   // Selectors for state modification
   const markAsRead = useNotificationStore((state) => state.markAsRead);
   const markAllAsRead = useNotificationStore((state) => state.markAllAsRead);
@@ -55,7 +58,7 @@ export default function NotificationsPanel() {
       {/* --- NOTIFICATION FEED STREAM --- */}
       <div className="space-y-3">
         {notifications.map((notification) => (
-            <NotificationCard notification={notification} markAsRead={markAsRead} setSelectedNotification={setSelectedNotification}/>
+            <NotificationCard notification={notification} key={notification.id} markAsRead={markAsRead} setSelectedNotification={setSelectedNotification}/>
         ))}
       </div>
 

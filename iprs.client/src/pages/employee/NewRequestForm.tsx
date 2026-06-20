@@ -96,7 +96,7 @@ export default function NewRequestForm() {
   const onFormSubmit = async (data: FormValues, submit: boolean) => {
     try {
       const request = await createRequest(data);
-      console.log(request);
+      
       if (submit) {
         await submitRequest(Guid.parse(request.id));
         toast.success(

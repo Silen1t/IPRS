@@ -81,13 +81,12 @@ const usePurchaseRequestStore = create<RequestState>((set, get) => ({
   },
 
   submitRequest: async (id) => {
-    await submitPurchaseRequest(id)
+    await submitPurchaseRequest(id);
   },
 
   initSignalR: async (token: string) => {
     const existingConnection = get().connection;
 
-    // 🌟 Check the actual Hub state, not just object existence
     if (existingConnection && existingConnection.state !== 'Disconnected') {
       return;
     }
@@ -100,13 +99,13 @@ const usePurchaseRequestStore = create<RequestState>((set, get) => ({
       .configureLogging(LogLevel.Warning)
       .build();
 
-    // Set up listeners immediately
     connection.on(
       'ReceiveRequest',
       (newRequest: PurchaseRequestResponseDto) => {
         set((state) => {
+          const targetId = newRequest.id?.toString().toLowerCase();
           const exists = state.purchaseRequests.some(
-            (r) => r.id === newRequest.id
+            (r) => r.id?.toString().toLowerCase() === targetId
           );
           const updatedRequests = exists
             ? state.purchaseRequests.map((r) =>
@@ -120,14 +119,12 @@ const usePurchaseRequestStore = create<RequestState>((set, get) => ({
     );
 
     try {
-      // 🌟 Only save to state if connection successfully opens
       await connection.start();
       set({ connection, error: null });
       if (import.meta.env.DEV) {
         console.log('SignalR Connected securely via Zustand store.');
       }
     } catch (err) {
-      // 🌟 Clean up state on connection failure to allow automated retries
       set({ connection: null });
       if (import.meta.env.DEV) {
         console.error('SignalR Hub initialization failed:', err);

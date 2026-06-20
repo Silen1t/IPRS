@@ -8,11 +8,8 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
-  type UniqueIdentifier,
 } from '@dnd-kit/core';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import { arrayMove } from '@dnd-kit/sortable';
 import {
   flexRender,
   getCoreRowModel,
@@ -57,6 +54,8 @@ import { purchaseRequestResponseSchema } from '@/schemas/purchaseRequest';
 import { columns } from './Columns';
 import { useNavigate } from 'react-router';
 import { ROUTES } from '@/config/routes';
+import useAuthStore from '@/stores/useAuthStore';
+import { UserRole } from '@/types/enums';
 
 export function DataTable({
   data: initialData,
@@ -65,8 +64,7 @@ export function DataTable({
 }) {
   const [data, setData] = React.useState(() => initialData);
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -76,6 +74,7 @@ export function DataTable({
     pageSize: 10,
   });
 
+  const role = useAuthStore((state) => state.role);
   const nav = useNavigate();
 
   const sortableId = React.useId();
@@ -89,18 +88,15 @@ export function DataTable({
     setData(initialData);
   }, [initialData]);
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ id }) => id) || [],
-    [data]
-  );
-
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
     state: {
       sorting,
-      columnVisibility,
+      columnVisibility: {
+        quickActions: !(role === UserRole.Employee || role === UserRole.Admin),
+      },
       rowSelection,
       columnFilters,
       pagination,
@@ -110,7 +106,6 @@ export function DataTable({
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -119,17 +114,6 @@ export function DataTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        return arrayMove(data, oldIndex, newIndex);
-      });
-    }
-  }
 
   return (
     <Tabs
@@ -144,7 +128,6 @@ export function DataTable({
           <DndContext
             collisionDetection={closestCenter}
             modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
             sensors={sensors}
             id={sortableId}
           >
@@ -171,11 +154,13 @@ export function DataTable({
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}
-                      onClick={() =>
-                        nav(ROUTES.requests.detail(row.original.id), {
-                          replace: true,
-                        })
-                      }
+                      onClick={() => {
+                        if (role == UserRole.Employee) {
+                          nav(ROUTES.requests.detail(row.original.id), {
+                            replace: true,
+                          });
+                        }
+                      }}
                       className="cursor-pointer transition-colors hover:bg-muted/50"
                     >
                       {row.getVisibleCells().map((cell) => (

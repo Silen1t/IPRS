@@ -12,9 +12,11 @@ import { Fragment } from 'react';
 import { useNavigate } from 'react-router';
 import { ROUTES, type NavItem } from '@/config/routes';
 import MenuItemContent from '@/components/sidebar/MenuItemContent';
+import useNotificationStore from '@/stores/useNotificationStore';
 
 export function NavMain({ items }: { items: NavItem[] }) {
   const nav = useNavigate();
+  const unreadCount = useNotificationStore((state) => state.unreadCount());
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -41,6 +43,22 @@ export function NavMain({ items }: { items: NavItem[] }) {
                 <RoleGuard key={item.title} allowedRoles={item.roles}>
                   <MenuItemContent item={item} nav={nav} />
                 </RoleGuard>
+              );
+            } else if (item.url == ROUTES.notifications) {
+              return (
+                <Fragment key={item.title}>
+                  <MenuItemContent
+                    item={item}
+                    nav={nav}
+                    children={
+                      unreadCount > 0 && (
+                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-mono text-[10px] font-medium text-destructive-foreground animate-pulse">
+                          {unreadCount}
+                        </span>
+                      )
+                    }
+                  />
+                </Fragment>
               );
             }
             return (

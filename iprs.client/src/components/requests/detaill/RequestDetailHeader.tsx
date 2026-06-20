@@ -124,7 +124,7 @@ export default function RequestDetailHeader({
             {activeConfig.label}
           </Badge>
 
-          {/* 🌟 Dynamic Urgency Level Badge Layout */}
+          {/* Dynamic Urgency Level Badge Layout */}
           {urgency && (
             <Badge
               variant="outline"
@@ -138,7 +138,7 @@ export default function RequestDetailHeader({
         <h1 className="text-2xl font-bold tracking-tight mt-1">{title}</h1>
       </div>
 
-      <div className="bg-card border border-border p-3 rounded-xl text-right min-w-40 shadow-sm">
+      <div className="bg-card border border-border p-3 rounded-xl text-left min-w-40 shadow-sm">
         <span className="text-xs text-muted-foreground block font-medium">
           Total Cost Commitment
         </span>

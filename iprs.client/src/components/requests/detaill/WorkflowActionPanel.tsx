@@ -1,5 +1,5 @@
 // Components/WorkflowActionPanel.tsx
-import{ useState } from 'react';
+import { useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { PurchaseRequestStatus, WorkflowAction } from '@/types/enums';
 import { Button } from '@/shadcn-ui/components/ui/button';
@@ -14,9 +14,7 @@ import {
 import { Input } from '@/shadcn-ui/components/ui/input';
 import { Textarea } from '@/shadcn-ui/components/ui/textarea';
 import { Label } from '@/shadcn-ui/components/ui/label';
-import type {
-  WorkflowPayload,
-} from '@/hooks/useRequestDetailsWorkflow';
+import type { WorkflowPayload } from '@/hooks/useRequestDetailsWorkflow';
 import { toast } from 'sonner';
 
 interface WorkflowActionPanelProps {
@@ -38,16 +36,31 @@ export default function WorkflowActionPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (approve: boolean) => {
-    if (!approve && !note.trim()) {
-      toast.error(
-        'A justification note is explicitly required for system rejections.'
-      );
+    if (!approve) {
+      if (!note || !note.trim()) {
+        toast.error('A justification note is required to reject this request.');
+        return;
+      }
+      
+      setIsSubmitting(true);
+      toast.success('Request rejected successfully.');
+      await onActionSubmit(WorkflowAction.Reject, {
+        note,
+      });
+      setNote('');
       return;
     }
-    if(status === PurchaseRequestStatus.Pending_Manager && approve){
 
-    }
-    else if (
+    if (status === PurchaseRequestStatus.Pending_Manager && approve) {
+      setIsSubmitting(true);
+      const success = await onActionSubmit(WorkflowAction.Approve_Manager, {
+        note,
+      });
+      if (success) {
+        setNote('');
+      }
+      return;
+    } else if (
       status === PurchaseRequestStatus.Pending_Finance &&
       approve &&
       !poNumber.trim()
@@ -59,18 +72,17 @@ export default function WorkflowActionPanel({
     }
 
     setIsSubmitting(true);
-    try {
-      await onActionSubmit(WorkflowAction.Approve_Finance, { note, purchaseOrderNumber: poNumber });
-      setNote('');
-      setPoNumber('');
-    } finally {
-      setIsSubmitting(false);
-    }
+    await onActionSubmit(WorkflowAction.Approve_Finance, {
+      note,
+      purchaseOrderNumber: poNumber,
+    });
+    setNote('');
+    setPoNumber('');
   };
 
   if (!isAuthorizedForAction) {
     return (
-      <Card className="border-primary/20 bg-primary/5 opacity-80 shadow-md">
+      <Card className=" bg-primary/5 opacity-80 shadow-md ">
         <CardHeader>
           <CardTitle className="text-sm font-bold tracking-tight">
             Workflow Authorization Action
@@ -93,7 +105,7 @@ export default function WorkflowActionPanel({
   }
 
   return (
-    <Card className="border-primary/20 bg-primary/5 shadow-md relative overflow-hidden">
+    <Card className="border-primary/20 bg-primary/5 shadow-md  overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 bg-primary/40" />
       <CardHeader>
         <CardTitle className="text-sm font-bold tracking-tight">

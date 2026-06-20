@@ -182,8 +182,8 @@ public class PurchaseRequestService(
         request.Status = PurchaseRequestStatus.Pending_Manager;
         request.UpdatedAt = DateTime.UtcNow;
         await requestRepo.SaveChangesAsync();
-
         Guid sendToUserId = department.Data.ManagerId.Value;
+
         string message = $"New procurement request {request.RequestNumber} requires your review.";
 
         await notificationService.NotifyUserAsync(sendToUserId, message, request.Id);
@@ -247,19 +247,9 @@ public class PurchaseRequestService(
         await notificationService.NotifyUserAsync(request.RequestedById, message, request.Id);
         await UpdateClientPurchaseRequest(request, request.RequestedById);
 
-        var financeUsersResult = await userService.GetAllUsersAsync("Finance", null, true);
-        if (financeUsersResult is { Success: true, Data: not null })
-        {
-            foreach (var financeOfficer in financeUsersResult.Data.Where(u => u.IsActive))
-            {
-                message =
-                    $"Request {request.RequestNumber} from Department {request.DepartmentId} has been manager-approved and requires financial clearance.";
+        await purchaseRequestHubContext.Clients.Group("Finance")
+            .SendAsync("ReceiveRequest", request.ToResponse());
 
-                await notificationService.NotifyUserAsync(financeOfficer.Id, message, request.Id);
-
-                await UpdateClientPurchaseRequest(request, financeOfficer.Id);
-            }
-        }
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -368,7 +358,9 @@ public class PurchaseRequestService(
 
     private async Task UpdateClientPurchaseRequest(PurchaseRequest request, Guid clientId)
     {
-        await purchaseRequestHubContext.Clients.User(clientId.ToString())
-            .SendAsync("ReceiveRequest", request.ToResponse());
+        PurchaseRequestResponseDto dto = request.ToResponse();
+        string userIdKey = clientId.ToString().ToLower();
+        await purchaseRequestHubContext.Clients.User(userIdKey)
+            .SendAsync("ReceiveRequest", dto);
     }
 }

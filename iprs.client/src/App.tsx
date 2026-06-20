@@ -7,38 +7,47 @@ import DashboardLayout from './components/DashboardLayout';
 import RequestDetailPage from './pages/shared/RequestDetailPage';
 import RoleProtectedRoute from './components/auth/RoleProtectedRouteProps';
 import { UserRole } from './types/enums';
-import MyRequests from './pages/employee/MyRequests';
 import NotificationsPanel from './pages/shared/NotificationsPanel';
 import { ROUTES } from './config/routes';
 import NewRequestForm from './pages/employee/NewRequestForm';
+import { useHeaderTitle } from './contexts/HeaderTitleContext';
 
 export default function App() {
+  const { title } = useHeaderTitle();
+  
   return (
     <>
-      <title>IPRS</title>
+      <title>{`IPRS - ${title}`}</title>
       <Routes>
         <Route path={ROUTES.auth.login} element={<LoginPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path={ROUTES.dashboard.home} element={<DashboardPage />} />
-            <Route path={`${ROUTES.requests.list}/:requestId`}  element={<RequestDetailPage />} />
-            <Route path={ROUTES.notifications} element={<NotificationsPanel />} />
+            <Route
+              path={`${ROUTES.requests.list}/:requestId`}
+              element={<RequestDetailPage />}
+            />
+            <Route
+              path={ROUTES.notifications}
+              element={<NotificationsPanel />}
+            />
 
             <Route
               element={
                 <RoleProtectedRoute allowedRoles={[UserRole.Employee]} />
               }
             >
-              <Route path={ROUTES.requests.myRequests} element={<MyRequests />} />
-              <Route path={ROUTES.requests.create} element={<NewRequestForm />} />
-              
+              <Route
+                path={ROUTES.requests.create}
+                element={<NewRequestForm />}
+              />
             </Route>
           </Route>
         </Route>
       </Routes>
 
-      <Toaster position="top-center" richColors />
+      <Toaster position="top-center" richColors duration={1000} />
     </>
   );
 }

@@ -5,12 +5,15 @@ using IPRS.Server.Data;
 using IPRS.Server.Hubs;
 using IPRS.Server.Infrastructure;
 using IPRS.Server.Middleware;
+using IPRS.Server.Providers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-var builder = WebApplication.CreateBuilder(args);
+System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
+var builder = WebApplication.CreateBuilder(args);
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
 
@@ -59,6 +62,7 @@ builder.Services.AddRouting(options =>
 });
 
 builder.Services.AddApplicationServices();
+builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
 builder.Services.AddSignalR();
 
 // Add services to the container.
@@ -76,10 +80,17 @@ builder.Services.AddControllers(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("https://localhost:63257", "https://localhost:7209")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
+        {
+            policy.WithOrigins("https://localhost:63257", "https://localhost:7209", "https://192.168.8.84:63257/")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials().SetIsOriginAllowed(origin =>
+                {
+                    var host = new Uri(origin).Host;
+                    // Allow localhost, local IP addresses (192.168.x.x), and local loopbacks
+                    return host == "localhost" || host == "127.0.0.1" || host.StartsWith("192.168.");
+                });
+        }
     );
 });
 
