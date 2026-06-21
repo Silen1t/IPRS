@@ -62,7 +62,8 @@ export default function RequestDetailPage() {
   }
 
   const renderPanel =
-    showWorkflowPanel && request.status !== PurchaseRequestStatus.Rejected;
+    (showWorkflowPanel && request.status !== PurchaseRequestStatus.Rejected) ||
+    request.status === PurchaseRequestStatus.Draft;
 
   return (
     <div className="w-full mx-auto p-6 space-y-8 text-foreground min-h-screen flex flex-col">

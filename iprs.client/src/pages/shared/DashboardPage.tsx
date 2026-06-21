@@ -1,7 +1,7 @@
 import LoadingDataTable from '@/components/requests/table/LoadingDataTable';
 import { useHeaderTitle } from '@/contexts/HeaderTitleContext';
-import { ChartAreaInteractive } from '@/shadcn-ui/components/chart-area-interactive';
-import { SectionCards } from '@/shadcn-ui/components/section-cards';
+// import { ChartAreaInteractive } from '@/shadcn-ui/components/chart-area-interactive';
+// import { SectionCards } from '@/shadcn-ui/components/section-cards';
 
 export default function DashboardPage() {
   const { setTitle } = useHeaderTitle();
@@ -15,11 +15,11 @@ export default function DashboardPage() {
       </div>
       <LoadingDataTable />
 
-      <SectionCards />
+      {/* <SectionCards />
 
       <div className="w-full">
         <ChartAreaInteractive />
-      </div>
+      </div> */}
     </div>
   );
 }

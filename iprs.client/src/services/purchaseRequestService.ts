@@ -43,7 +43,7 @@ export async function createPurchaseRequest(
   return res.data;
 }
 
-export async function editPurchaseRequest(
+export async function updatePurchaseRequest(
   id: Guid,
   dto: UpdatePurchaseRequestDto
 ): Promise<PurchaseRequestResponseDto> {

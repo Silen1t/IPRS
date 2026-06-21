@@ -25,6 +25,7 @@ export const ROUTES = {
     myRequests: '/dashboard/my-requests',
     create: '/dashboard/requests/create',
     detail: (id: string | number) => `/dashboard/requests/${id}`,
+    edit: (id: string | number) => `/dashboard/requests/${id}/edit`,
   },
   notifications: '/dashboard/notifications',
 } as const;

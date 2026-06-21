@@ -12,6 +12,7 @@ import {
   readAllNotifications,
   readNotification,
 } from '@/services/notificationService';
+import { toast } from 'sonner';
 
 interface NotificationState {
   notifications: NotificationResponseDto[];
@@ -95,6 +96,11 @@ const useNotificationStore = create<NotificationState>((set, get) => ({
             set((state) => ({
               notifications: [newNotification, ...state.notifications],
             }));
+            toast.info('New Notification Received', {
+              description:
+                newNotification.message ||
+                'You have received a new update regarding a purchase request.',
+            });
           }
         );
       })

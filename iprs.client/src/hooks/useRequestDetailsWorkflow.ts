@@ -18,6 +18,8 @@ import type { CategoryLookupDto } from '@/schemas/category';
 import type { DepartmentResponseDto } from '@/schemas/department';
 import { toast } from 'sonner';
 import { Guid } from 'guid-typescript';
+import { useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes';
 
 export interface WorkflowPayload {
   note?: string;
@@ -44,8 +46,8 @@ const useRequestDetailsWorkflow = (
   const [isActionProcessing, setIsActionProcessing] = useState<boolean>(false);
   const [isRequestsLoading, setIsRequestsLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false); //  Added local error state tracking
-
-  const { purchaseRequests, initPurchaseRequests, updateSingleRequestInStore } =
+  const navigate = useNavigate();
+  const { purchaseRequests, initPurchaseRequests, refreshPurchaseRequests } =
     usePurchaseRequestStore();
   const { role: currentUserRole, employeeId: currentUserEmpId } =
     useAuthStore();
@@ -161,16 +163,15 @@ const useRequestDetailsWorkflow = (
       setIsActionProcessing(true);
 
       try {
-        let updatedRequest: PurchaseRequestResponseDto;
-
         switch (actionType) {
           case WorkflowAction.Approve_Manager:
-            updatedRequest = await managerApprovePurchaseRequest(
-              Guid.parse(requestId),
-              {
-                note: payload?.note,
-              }
+            await managerApprovePurchaseRequest(Guid.parse(requestId), {
+              note: payload?.note,
+            });
+            toast.success(
+              `Request successfully moved to the next workflow state.`
             );
+
             break;
 
           case WorkflowAction.Approve_Finance:
@@ -180,32 +181,27 @@ const useRequestDetailsWorkflow = (
               );
               return false;
             }
-            updatedRequest = await financeApprovePurchaseRequest(
-              Guid.parse(requestId),
-              {
-                purchaseOrderNumber: payload.purchaseOrderNumber,
-                note: payload?.note,
-              }
+            await financeApprovePurchaseRequest(Guid.parse(requestId), {
+              purchaseOrderNumber: payload.purchaseOrderNumber,
+              note: payload?.note,
+            });
+            toast.success(
+              `Request successfully moved to the next workflow state.`
             );
+
             break;
 
           case WorkflowAction.Reject:
             if (request.status === PurchaseRequestStatus.Pending_Manager) {
-              updatedRequest = await managerRejectPurchaseRequest(
-                Guid.parse(requestId),
-                {
-                  note: payload?.note ?? 'Rejected by operational manager.',
-                }
-              );
+              await managerRejectPurchaseRequest(Guid.parse(requestId), {
+                note: payload?.note ?? 'Rejected by operational manager.',
+              });
             } else if (
               request.status === PurchaseRequestStatus.Pending_Finance
             ) {
-              updatedRequest = await financeRejectPurchaseRequest(
-                Guid.parse(requestId),
-                {
-                  note: payload?.note ?? 'Rejected during financial auditing.',
-                }
-              );
+              await financeRejectPurchaseRequest(Guid.parse(requestId), {
+                note: payload?.note ?? 'Rejected during financial auditing.',
+              });
             } else {
               throw new Error(
                 'This request cannot be rejected in its current workflow state.'
@@ -214,15 +210,19 @@ const useRequestDetailsWorkflow = (
             break;
 
           case WorkflowAction.Cancel:
-            updatedRequest = await cancelPurchaseRequest(Guid.parse(requestId));
+            await cancelPurchaseRequest(Guid.parse(requestId));
+            toast.success('Request Has Been Cancelled Successfully');
+
             break;
+
+          case WorkflowAction.Edit:
+            navigate(ROUTES.requests.edit(requestId), { replace: true });
+            return true;
 
           default:
             throw new Error(`Unmapped action context: ${actionType}`);
         }
-
-        updateSingleRequestInStore(updatedRequest);
-        toast.success(`Request successfully moved to the next workflow state.`);
+        await refreshPurchaseRequests();
         return true;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -240,7 +240,7 @@ const useRequestDetailsWorkflow = (
         setIsActionProcessing(false);
       }
     },
-    [requestId, request, updateSingleRequestInStore]
+    [requestId, request, navigate, refreshPurchaseRequests]
   );
 
   return {

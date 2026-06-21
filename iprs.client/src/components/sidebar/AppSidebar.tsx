@@ -5,17 +5,14 @@ import { NavUser } from '@/components/sidebar/NavUser';
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/shadcn-ui/components/ui/sidebar';
-import {
-  LayersIcon,
-} from 'lucide-react';
+import { LayersIcon } from 'lucide-react';
 
-import useAuthStore  from '@/stores/useAuthStore';
+import useAuthStore from '@/stores/useAuthStore';
 import { UserRole } from '@/types/enums';
 import { SIDEBAR_CONFIG } from '@/config/routes';
 
@@ -24,7 +21,7 @@ interface Props extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ userRole, ...props }: Props) {
-  const { fullName, employeeId} = useAuthStore();
+  const { fullName, employeeId } = useAuthStore();
 
   const config = SIDEBAR_CONFIG;
 
@@ -62,14 +59,19 @@ export function AppSidebar({ userRole, ...props }: Props) {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent>
-        <NavMain items={filteredNavMain} />
-        <NavDocuments items={filteredDocuments} />
-      </SidebarContent>
+      {/* Structured flex layout container inside SidebarContent */}
+      <SidebarContent className="flex flex-col justify-between h-full min-h-0 overflow-hidden">
+        {/* Scrollable menu links area */}
+        <div className="flex-1 overflow-y-auto">
+          <NavMain items={filteredNavMain} />
+          <NavDocuments items={filteredDocuments} />
+        </div>
 
-      <SidebarFooter>
-        <NavUser user={currentUser} />
-      </SidebarFooter>
+        {/* Pinned profile container block at the bottom of the content stack */}
+        <div className="shrink-0 p-2 border-t border-sidebar-border bg-sidebar sticky bottom-0 z-10">
+          <NavUser user={currentUser} />
+        </div>
+      </SidebarContent>
     </Sidebar>
   );
 }

@@ -11,6 +11,7 @@ import NotificationsPanel from './pages/shared/NotificationsPanel';
 import { ROUTES } from './config/routes';
 import NewRequestForm from './pages/employee/NewRequestForm';
 import { useHeaderTitle } from './contexts/HeaderTitleContext';
+import EditRequestForm from './pages/employee/EditRequestForm';
 
 export default function App() {
   const { title } = useHeaderTitle();
@@ -28,6 +29,12 @@ export default function App() {
               path={`${ROUTES.requests.list}/:requestId`}
               element={<RequestDetailPage />}
             />
+
+            <Route
+              path={`${ROUTES.requests.list}/:requestId/edit`}
+              element={<EditRequestForm />}
+            />
+
             <Route
               path={ROUTES.notifications}
               element={<NotificationsPanel />}

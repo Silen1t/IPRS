@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import useAuthStore from '@/stores/useAuthStore';
 import { UserRole, WorkflowAction } from '@/types/enums';
 import { ROUTES } from '@/config/routes';
-import WorkflowDialog from '../WorkflowDialog';
+import WorkflowDialog from './WorkflowDialog';
 import useRequestDetailsWorkflow from '@/hooks/useRequestDetailsWorkflow';
 
 interface QuickActionsProps {

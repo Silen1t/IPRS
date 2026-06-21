@@ -1,4 +1,3 @@
-import NotificationSubMenu from '@/components/notifications/NotificationSubMenu';
 import {
   Avatar,
   AvatarFallback,
@@ -13,19 +12,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shadcn-ui/components/ui/dropdown-menu';
+
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from '@/shadcn-ui/components/ui/sidebar';
-import useAuthStore  from '@/stores/useAuthStore';
+import useAuthStore from '@/stores/useAuthStore';
 import useNotificationStore from '@/stores/useNotificationStore';
+import usePurchaseRequestStore from '@/stores/usePurchaseRequestStore';
 import {
-  EllipsisVerticalIcon,
   CircleUserRoundIcon,
+  EllipsisVerticalIcon,
   LogOutIcon,
 } from 'lucide-react';
+import NotificationSubMenu from '../notifications/NotificationSubMenu';
 
 export function NavUser({
   user,
@@ -38,7 +40,13 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const logout = useAuthStore((state) => state.logout);
-  const disconnect = useNotificationStore((state) => state.disconnectSignalR);
+  const disconnectNotifications = useNotificationStore(
+    (state) => state.disconnectSignalR
+  );
+  const disconnectPurchaseRequests = usePurchaseRequestStore(
+    (state) => state.disconnectSignalR
+  );
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -46,21 +54,26 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground elements-upgrade"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg grayscale shrink-0">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-start text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs text-muted-foreground">
+
+              {/* Added min-w-0 to prevent text nodes from pushing out parent box widths */}
+              <div className="flex flex-col flex-1 min-w-0 text-start text-sm leading-tight">
+                <span className="truncate font-medium text-foreground block">
+                  {user.name}
+                </span>
+                <span className="truncate text-xs text-muted-foreground block">
                   {user.email}
                 </span>
               </div>
-              <EllipsisVerticalIcon className="ms-auto size-4" />
+              <EllipsisVerticalIcon className="ms-auto size-4 shrink-0 text-muted-foreground" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? 'bottom' : 'right'}
@@ -69,11 +82,11 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+                <Avatar className="h-8 w-8 rounded-lg shrink-0">
                   <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-start text-sm leading-tight">
+                <div className="flex flex-col flex-1 min-w-0 text-start text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {user.email}
@@ -84,19 +97,22 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <CircleUserRoundIcon />
+                <CircleUserRoundIcon className="size-4 mr-2 text-muted-foreground" />
                 Account
               </DropdownMenuItem>
               <NotificationSubMenu />
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
               onClick={() => {
+                // Fixed execution order: disconnect sockets before clearing state
+                disconnectNotifications();
+                disconnectPurchaseRequests();
                 logout();
-                disconnect();
               }}
             >
-              <LogOutIcon />
+              <LogOutIcon className="size-4 mr-2" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

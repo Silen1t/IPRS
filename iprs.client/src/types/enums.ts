@@ -24,6 +24,7 @@ export const WorkflowAction = {
   Approve_Finance: 'Approve_Finance',
   Reject: 'Reject',
   Cancel: 'Cancel',
+  Edit: 'Edit',
 } as const;
 
 export type WorkflowAction =

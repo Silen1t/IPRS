@@ -17,7 +17,7 @@ export function NavDocuments({ items }: { items: NavItem[] }) {
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>{userRole}</SidebarGroupLabel>
+      <SidebarGroupLabel>{items.length > 0 && userRole }</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           if (item.roles != null) {

@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   XCircle,
   FileEdit,
+  BanIcon,
 } from 'lucide-react';
 import { PurchaseRequestStatus } from '@/types/enums';
 import type { PurchaseRequestResponseDto } from '@/schemas/purchaseRequest';
@@ -73,11 +74,15 @@ export default function WorkflowTimeline({ request }: WorkflowTimelineProps) {
               className={`absolute -left-5 mt-0.5 rounded-full p-0.5 flex items-center justify-center border border-background ${
                 currentStatus === PurchaseRequestStatus.Draft
                   ? 'bg-blue-500 text-white animate-pulse'
-                  : 'bg-emerald-500 text-white'
+                  : currentStatus === PurchaseRequestStatus.Cancelled
+                    ? 'bg-red-500 text-white'
+                    : 'bg-emerald-500 text-white'
               }`}
             >
               {currentStatus === PurchaseRequestStatus.Draft ? (
                 <FileEdit className="h-3 w-3" />
+              ) : currentStatus === PurchaseRequestStatus.Cancelled ? (
+                <BanIcon className="h-3 w-3 stroke-3" />
               ) : (
                 <Check className="h-3 w-3 stroke-3" />
               )}
@@ -88,17 +93,23 @@ export default function WorkflowTimeline({ request }: WorkflowTimelineProps) {
                   className={`text-sm font-semibold ${
                     currentStatus === PurchaseRequestStatus.Draft
                       ? 'text-blue-500'
-                      : 'text-foreground'
+                      : currentStatus === PurchaseRequestStatus.Cancelled
+                        ? 'text-red-500'
+                        : 'text-foreground'
                   }`}
                 >
                   {currentStatus === PurchaseRequestStatus.Draft
                     ? 'Draft Mode'
-                    : 'Request Submitted'}
+                    : currentStatus === PurchaseRequestStatus.Cancelled
+                      ? 'Request Cancelled'
+                      : 'Request Submitted'}
                 </h4>
                 <p className="text-xs text-muted-foreground">
                   {currentStatus === PurchaseRequestStatus.Draft
                     ? 'This request is currently a draft and has not been submitted to managers yet.'
-                    : 'The request was successfully submitted for approval routing.'}
+                    : currentStatus === PurchaseRequestStatus.Cancelled
+                      ? 'This purchase request has been cancelled and removed from active routing.'
+                      : 'The request was successfully submitted for approval routing.'}
                 </p>
               </div>
               <div className="text-[11px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded border border-border/50">

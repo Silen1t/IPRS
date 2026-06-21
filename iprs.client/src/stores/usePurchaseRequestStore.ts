@@ -2,9 +2,11 @@ import { create } from 'zustand';
 import type {
   CreatePurchaseRequestDto,
   PurchaseRequestResponseDto,
+  UpdatePurchaseRequestDto,
 } from '@/schemas/purchaseRequest';
 import {
   createPurchaseRequest,
+  updatePurchaseRequest,
   getAllPurchaseRequests,
   submitPurchaseRequest,
 } from '@/services/purchaseRequestService';
@@ -13,7 +15,7 @@ import {
   HubConnectionBuilder,
   LogLevel,
 } from '@microsoft/signalr';
-import type { Guid } from 'guid-typescript';
+import { Guid } from 'guid-typescript';
 
 interface RequestState {
   purchaseRequests: PurchaseRequestResponseDto[];
@@ -25,9 +27,7 @@ interface RequestState {
   initPurchaseRequests: () => Promise<void>;
   refreshPurchaseRequests: () => Promise<void>;
   submitRequest: (id: Guid) => Promise<void>;
-  updateSingleRequestInStore: (
-    updatedRequest: PurchaseRequestResponseDto
-  ) => void;
+  updateRequest: (updatedRequest: UpdatePurchaseRequestDto) => void;
   createRequest: (
     dto: CreatePurchaseRequestDto
   ) => Promise<PurchaseRequestResponseDto>;
@@ -59,12 +59,11 @@ const usePurchaseRequestStore = create<RequestState>((set, get) => ({
     }
   },
 
-  updateSingleRequestInStore: (updatedRequest) => {
-    set((state) => ({
-      purchaseRequests: state.purchaseRequests.map((r) =>
-        r.id === updatedRequest.id ? updatedRequest : r
-      ),
-    }));
+  updateRequest: async (dto) => {
+    await updatePurchaseRequest(Guid.parse(dto.id), dto);
+    channel.postMessage({
+      type: 'REQUESTS_UPDATED',
+    } satisfies RequestsSyncMessage);
   },
 
   createRequest: async (dto) => {
@@ -75,9 +74,6 @@ const usePurchaseRequestStore = create<RequestState>((set, get) => ({
   refreshPurchaseRequests: async () => {
     const data = await getAllPurchaseRequests(null, null, null, null);
     set({ purchaseRequests: data });
-    channel.postMessage({
-      type: 'REQUESTS_UPDATED',
-    } satisfies RequestsSyncMessage);
   },
 
   submitRequest: async (id) => {
