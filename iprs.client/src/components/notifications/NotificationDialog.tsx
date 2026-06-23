@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shadcn-ui/components/ui/dialog';
-import { FormatDate } from '@/utils/date';
+import { formatDate } from '@/utils/date';
 import { useNavigate } from 'react-router';
 
 export default function NotificationDialog({
@@ -16,9 +16,11 @@ export default function NotificationDialog({
   setSelectedNotification,
 }: {
   selectedNotification: NotificationResponseDto | null;
-  setSelectedNotification: (notification: NotificationResponseDto | null) => void;
+  setSelectedNotification: (
+    notification: NotificationResponseDto | null
+  ) => void;
 }) {
-    const nav = useNavigate();
+  const nav = useNavigate();
   return (
     <Dialog
       open={!!selectedNotification}
@@ -38,7 +40,7 @@ export default function NotificationDialog({
               {selectedNotification.message}
             </p>
             <span className="block mt-3 text-[10px] font-mono text-muted-foreground">
-              Received: {FormatDate(selectedNotification.createdAt)}
+              Received: {formatDate(selectedNotification.createdAt)}
             </span>
           </div>
 
@@ -61,7 +63,10 @@ export default function NotificationDialog({
                   size="sm"
                   className="w-full sm:w-auto"
                   onClick={() => {
-                    nav(`${ROUTES.requests.detail(selectedNotification.relatedRequestId)}`, {replace: true});
+                    nav(
+                      `${ROUTES.requests.detail(selectedNotification.relatedRequestId)}`,
+                      { replace: true }
+                    );
                     setSelectedNotification(null);
                   }}
                 >

@@ -10,7 +10,7 @@ export function CategoryCell({ categoryId }: CategoryCellProps) {
   const name = categories.find((c) => c.id == categoryId)?.name;
 
   return (
-    <Badge variant="outline" className="px-1.5 text-muted-foreground">
+    <Badge variant="secondary" className="px-1.5 text-muted-foreground">
       {name || 'General'}
     </Badge>
   );

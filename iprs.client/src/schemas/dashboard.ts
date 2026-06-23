@@ -31,11 +31,8 @@ export const dashboardStatsSchema = z.object({
   adminStats: adminDashboardStatsSchema.nullable(),
 });
 
-export type DashboardStatsDto = z.infer<typeof dashboardStatsSchema>;
 
 export const reportSummarySchema = z.object({
   requests: z.array(purchaseRequestResponseSchema), 
   totalSpendSum: z.number(),
 });
-
-export type ReportSummaryDto = z.infer<typeof reportSummarySchema>;

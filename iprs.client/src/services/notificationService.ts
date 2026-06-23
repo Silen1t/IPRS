@@ -1,4 +1,4 @@
-import { type NotificationResponseDto } from '../schemas/notification';
+import type { NotificationResponseDto } from '@/types/notification';
 import { api } from './api';
 import type { Guid } from 'guid-typescript';
 

@@ -39,7 +39,9 @@ export const UserRole = {
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
-export enum LoginMethod {
-  EmployeeId = 'employee ID',
-  Email = 'email',
-}
+export const LoginMethod = {
+  EmployeeId: 'employee ID',
+  Email :'email',
+}  as const;
+
+export type LoginMethod = (typeof LoginMethod)[keyof typeof LoginMethod];

@@ -1,8 +1,5 @@
-import type {
-  CategoryLookupDto,
-  CreateCategoryDto,
-  UpdateCategoryDto,
-} from '../schemas/category';
+
+import type { CategoryLookupDto, CreateCategoryDto, UpdateCategoryDto } from '@/types/category';
 import { api } from './api';
 
 export async function getAllActiveCategories(): Promise<CategoryLookupDto[]> {

@@ -1,17 +1,14 @@
 import { create } from 'zustand';
 import type { Guid } from 'guid-typescript';
-import type { 
-  UserResponseDto, 
-  CreateUserDto, 
-  UpdateUserDto, 
-  UserProfile 
-} from '@/schemas/user';
-import { 
-  getAllUsers, 
-  createUser, 
-  updateUser 
-} from '@/services/userService';
+
+import { getAllUsers, createUser, updateUser } from '@/services/userService';
 import { getProfileInfo } from '@/services/authService';
+import type {
+  CreateUserDto,
+  UpdateUserDto,
+  UserProfile,
+  UserResponseDto,
+} from '@/types/users';
 
 interface UserState {
   users: UserResponseDto[];
@@ -35,7 +32,8 @@ const useUserStore = create<UserState>((set) => ({
       const data = await getAllUsers(null, null, null);
       set({ users: data });
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to fetch user directory:', err);
+      if (import.meta.env.DEV)
+        console.error('Failed to fetch user directory:', err);
     } finally {
       set({ isLoading: false });
     }
@@ -46,7 +44,8 @@ const useUserStore = create<UserState>((set) => ({
       const profileData = await getProfileInfo();
       set({ profile: profileData });
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to fetch security profile:', err);
+      if (import.meta.env.DEV)
+        console.error('Failed to fetch security profile:', err);
     }
   },
 
@@ -67,7 +66,9 @@ const useUserStore = create<UserState>((set) => ({
       const responseService = await updateUser(id, dto);
       if (responseService) {
         set((state) => ({
-          users: state.users.map((u) => (u.id === id.toString() ? responseService : u)),
+          users: state.users.map((u) =>
+            u.id === id.toString() ? responseService : u
+          ),
         }));
       }
     } catch (err) {

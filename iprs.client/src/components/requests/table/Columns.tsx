@@ -11,8 +11,9 @@ import { Badge } from '@/shadcn-ui/components/ui/badge';
 import { purchaseRequestResponseSchema } from '@/schemas/purchaseRequest';
 import { PurchaseRequestStatus } from '@/types/enums';
 import { CategoryCell } from './CategoryCell';
-import { FormatDate } from '@/utils/date';
+import { formatDate } from '@/utils/date';
 import QuickActions from './QuickActions';
+import { formatMoney } from '@/utils/money';
 
 export const columns: ColumnDef<
   z.infer<typeof purchaseRequestResponseSchema>
@@ -52,9 +53,7 @@ export const columns: ColumnDef<
       <div className="flex gap-1.5 font-mono w-full">
         <SaudiRiyal className="size-5" />
         <span>
-          {Number(row.original.totalPrice).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-          })}
+          {formatMoney(row.original.totalPrice)}
         </span>
       </div>
     ),
@@ -65,7 +64,6 @@ export const columns: ColumnDef<
     cell: ({ row }) => {
       const urgency = row.original.urgencyLevel?.toLowerCase() || 'medium';
 
-      // Maps directly to your design token configuration dictionary
       const urgencyStyles: Record<string, string> = {
         critical:
           'bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400 font-bold',
@@ -139,7 +137,7 @@ export const columns: ColumnDef<
       const dateVal = row.original.createdAt;
       return (
         <span className="text-muted-foreground font-mono text-xs">
-          {dateVal ? FormatDate(dateVal) : 'N/A'}
+          {dateVal ? formatDate(dateVal) : 'N/A'}
         </span>
       );
     },

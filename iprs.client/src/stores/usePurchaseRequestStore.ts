@@ -1,9 +1,5 @@
 import { create } from 'zustand';
-import type {
-  CreatePurchaseRequestDto,
-  PurchaseRequestResponseDto,
-  UpdatePurchaseRequestDto,
-} from '@/schemas/purchaseRequest';
+
 import {
   createPurchaseRequest,
   updatePurchaseRequest,
@@ -16,6 +12,11 @@ import {
   LogLevel,
 } from '@microsoft/signalr';
 import { Guid } from 'guid-typescript';
+import type {
+  CreatePurchaseRequestDto,
+  PurchaseRequestResponseDto,
+  UpdatePurchaseRequestDto,
+} from '@/types/purchaseRequest';
 
 interface RequestState {
   purchaseRequests: PurchaseRequestResponseDto[];

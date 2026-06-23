@@ -1,16 +1,12 @@
-import React from 'react';
 import {
   LayoutDashboard,
-  Users,
-  FileText,
   Bell,
-  FileChartColumn, // Standard lucide naming convention
+  FileChartColumn,
+  Files,
 } from 'lucide-react';
 import { UserRole } from '@/types/enums';
+import type { ComponentType } from 'react';
 
-// ==========================================
-// 1. Centralized Page Routing Map
-// ==========================================
 export const ROUTES = {
   auth: {
     login: '/',
@@ -22,6 +18,7 @@ export const ROUTES = {
   },
   requests: {
     list: '/dashboard/requests',
+    approvedRequests: '/dashboard/approved-requests',
     myRequests: '/dashboard/my-requests',
     create: '/dashboard/requests/create',
     detail: (id: string | number) => `/dashboard/requests/${id}`,
@@ -35,10 +32,9 @@ export type AppRoutes = typeof ROUTES;
 export interface NavItem {
   title: string;
   url: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   roles?: UserRole[];
 }
-
 
 export const SIDEBAR_CONFIG = {
   navMain: [
@@ -46,18 +42,6 @@ export const SIDEBAR_CONFIG = {
       title: 'Dashboard',
       url: ROUTES.dashboard.home,
       icon: LayoutDashboard,
-    },
-    {
-      title: 'Department Requests',
-      url: ROUTES.requests.list,
-      icon: Users,
-      roles: [UserRole.Manager],
-    },
-    {
-      title: 'Global Reports',
-      url: ROUTES.dashboard.reports,
-      icon: FileText,
-      roles: [UserRole.Admin, UserRole.Finance],
     },
     {
       title: 'Notifications',
@@ -68,10 +52,22 @@ export const SIDEBAR_CONFIG = {
 
   roles: [
     {
+      title: 'Department Requests',
+      url: ROUTES.requests.list,
+      icon: Files,
+      roles: [UserRole.Manager],
+    },
+    {
       title: 'Reports',
-      url: ROUTES.dashboard.reports, 
+      url: ROUTES.dashboard.reports,
       icon: FileChartColumn,
-      roles: [UserRole.Admin],
+      roles: [UserRole.Admin, UserRole.Finance],
+    },
+    {
+      title: 'My Requests',
+      url: ROUTES.requests.myRequests,
+      icon: Files,
+      roles: [UserRole.Employee],
     },
   ] as NavItem[],
 };

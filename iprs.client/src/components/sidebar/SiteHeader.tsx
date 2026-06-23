@@ -1,8 +1,8 @@
-'use client';
+
 
 import { Separator } from '@/shadcn-ui/components/ui/separator';
 import { SidebarTrigger } from '@/shadcn-ui/components/ui/sidebar';
-import { useHeaderTitle } from '@/contexts/HeaderTitleContext'; 
+import useHeaderTitle from '@/contexts/HeaderTitleContext'; 
 
 export function SiteHeader() {
   const { title } = useHeaderTitle(); 
@@ -13,7 +13,7 @@ export function SiteHeader() {
         <SidebarTrigger className="-ms-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
         
-        {/* 🌟 Display the responsive page title */}
+        {/*  Display the responsive page title */}
         <span className="text-sm font-semibold tracking-tight text-foreground transition-all duration-200">
           {title}
         </span>

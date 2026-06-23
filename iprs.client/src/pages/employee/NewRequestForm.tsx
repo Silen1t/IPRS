@@ -20,6 +20,7 @@ import usePurchaseRequestStore from '@/stores/usePurchaseRequestStore';
 import useCategoryStore from '@/stores/useCategoryStore';
 import { toast } from 'sonner';
 import { Guid } from 'guid-typescript';
+import { formatMoney } from '@/utils/money';
 
 // 1. Adjusted the Zod Schema to handle empty string submissions gracefully via invalid_type_error
 const formSchema = z
@@ -317,10 +318,7 @@ export default function NewRequestForm() {
             <div className="relative flex items-center">
               <SaudiRiyal className="absolute left-3 size-4 text-muted-foreground/50 pointer-events-none" />
               <div className="flex h-9 w-full rounded-md border border-input bg-muted/40 px-9 py-1 text-sm shadow-sm items-center font-mono text-muted-foreground select-none">
-                {totalPrice.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {formatMoney(totalPrice)}
               </div>
             </div>
           </div>

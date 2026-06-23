@@ -1,14 +1,14 @@
 import { create } from 'zustand';
-import type { DashboardStatsDto, ReportSummaryDto } from '@/schemas/dashboard';
 import { getReport, getStats } from '@/services/dashboardService';
 import type { PurchaseRequestStatus } from '@/types/enums';
+import type { DashboardStatsDto, ReportSummaryDto } from '@/types/dashboard';
 
 interface DashboardState {
   stats: DashboardStatsDto | null;
   reportSummary: ReportSummaryDto | null;
   isLoadingStats: boolean;
   isLoadingReport: boolean;
-  fetchMetrics: () => Promise<void>;
+  fetchStats: () => Promise<void>;
   fetchReportSummary: (
     startTime: string | null,
     endTime: string | null,
@@ -24,7 +24,7 @@ const useDashboardStore = create<DashboardState>((set) => ({
   isLoadingStats: false,
   isLoadingReport: false,
 
-  fetchMetrics: async () => {
+  fetchStats: async () => {
     set({ isLoadingStats: true });
     try {
       const data = await getStats();

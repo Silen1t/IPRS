@@ -7,7 +7,6 @@ export const createCategorySchema = z.object({
     .max(100, 'Category name cannot exceed 100 characters'),
 });
 
-export type CreateCategoryDto = z.infer<typeof createCategorySchema>;
 
 export const updateCategorySchema = z.object({
   name: z
@@ -17,7 +16,7 @@ export const updateCategorySchema = z.object({
   isActive: z.boolean(),
 });
 
-export type UpdateCategoryDto = z.infer<typeof updateCategorySchema>;
+
 
 export const categoryLookupSchema = z.object({
   id: z.number().int(),
@@ -27,5 +26,3 @@ export const categoryLookupSchema = z.object({
     .max(100, 'Category name cannot exceed 100 characters'),
   isActive: z.boolean(),
 });
-
-export type CategoryLookupDto = z.infer<typeof categoryLookupSchema>;

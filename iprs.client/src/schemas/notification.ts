@@ -8,14 +8,9 @@ export const notificationResponseSchema = z.object({
   relatedRequestId: z.guid(),
 });
 
-export type NotificationResponseDto = z.infer<
-  typeof notificationResponseSchema
->;
+
 
 export const updateNotificationReadStatusSchema = z.object({
   isRead: z.boolean(),
 });
 
-export type UpdateNotificationReadStatusDto = z.infer<
-  typeof updateNotificationReadStatusSchema
->;

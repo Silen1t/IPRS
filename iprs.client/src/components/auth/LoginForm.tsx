@@ -1,3 +1,5 @@
+
+
 import { cn } from '@/shadcn-ui/lib/utils';
 import { Button } from '@/shadcn-ui/components/ui/button';
 import {
@@ -17,20 +19,16 @@ import { Input } from '@/shadcn-ui/components/ui/input';
 import { LoginMethod } from '@/types/enums';
 import { useForm, Controller, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  loginEmailSchema,
-  loginEmployeeIdSchema,
-  type LoginEmail,
-  type LoginEmployeeId,
-} from '@/schemas/auth';
+import { loginEmailSchema, loginEmployeeIdSchema } from '@/schemas/auth';
 import { toast } from 'sonner';
 import { loginByEmail, loginByEmployeeId } from '@/services/authService';
 import { useNavigate } from 'react-router';
 import { EyeClosed, EyeIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import { ROUTES } from '@/config/routes';
+import type { LoginEmail, LoginEmployeeId } from '@/types/auth';
 
-interface LoginFormProps extends React.ComponentProps<'div'> {
+interface LoginFormProps extends ComponentProps<'div'> {
   method: LoginMethod;
 }
 
@@ -120,7 +118,11 @@ function EmailForm() {
                   className="shrink-0"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeIcon className="size-4" /> : <EyeClosed className="size-4" />}
+                  {showPassword ? (
+                    <EyeIcon className="size-4" />
+                  ) : (
+                    <EyeClosed className="size-4" />
+                  )}
                 </Button>
               </div>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -212,7 +214,11 @@ function EmployeeIdForm() {
                   className="shrink-0"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeIcon className="size-4" /> : <EyeClosed className="size-4" />}
+                  {showPassword ? (
+                    <EyeIcon className="size-4" />
+                  ) : (
+                    <EyeClosed className="size-4" />
+                  )}
                 </Button>
               </div>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

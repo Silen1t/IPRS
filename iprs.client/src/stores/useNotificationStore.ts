@@ -5,7 +5,6 @@ import {
   LogLevel,
 } from '@microsoft/signalr';
 
-import type { NotificationResponseDto } from '@/schemas/notification';
 import type { Guid } from 'guid-typescript';
 import {
   getAllNotifications,
@@ -13,6 +12,7 @@ import {
   readNotification,
 } from '@/services/notificationService';
 import { toast } from 'sonner';
+import type { NotificationResponseDto } from '@/types/notification';
 
 interface NotificationState {
   notifications: NotificationResponseDto[];

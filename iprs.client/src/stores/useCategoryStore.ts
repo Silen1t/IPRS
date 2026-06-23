@@ -1,14 +1,15 @@
 import { create } from 'zustand';
-import type {
-  CategoryLookupDto,
-  CreateCategoryDto,
-  UpdateCategoryDto,
-} from '@/schemas/category';
+
 import {
   getAllActiveCategories,
   createCategory,
   updateCategory,
 } from '@/services/categoryService';
+import type {
+  CategoryLookupDto,
+  CreateCategoryDto,
+  UpdateCategoryDto,
+} from '@/types/category';
 
 interface CategoryState {
   categories: CategoryLookupDto[];

@@ -1,11 +1,8 @@
 import { api } from './api';
-import {
-  type CreateUserDto,
-  type UpdateUserDto,
-  type UserResponseDto,
-} from '../schemas/user'; 
+
 import { UserRole } from '../types/enums';
 import type { Guid } from 'guid-typescript';
+import type { CreateUserDto, UpdateUserDto, UserResponseDto } from '@/types/users';
 
 export async function getAllUsers(
   role: UserRole | null,

@@ -39,13 +39,12 @@ export default function QuickActions({ request }: QuickActionsProps) {
     } else if (activeAction === WorkflowAction.Reject) {
       handleWorkflowExecution(activeAction, {
         note: formData.note,
-        purchaseOrderNumber: formData.poNumber,
       });
     }
   };
 
   return (
-    <div className="flex items-center justify-end gap-3">
+    <div className="flex items-center gap-3">
       <Link
         to={ROUTES.requests.detail(request.id)}
         replace

@@ -1,4 +1,4 @@
-'use client';
+
 
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
@@ -16,8 +16,9 @@ import { ROUTES } from '@/config/routes';
 import usePurchaseRequestStore from '@/stores/usePurchaseRequestStore';
 import { useEffect } from 'react';
 import WorkflowActionPanel from '@/components/requests/detaill/WorkflowActionPanel';
-import { useHeaderTitle } from '@/contexts/HeaderTitleContext';
-import { PurchaseRequestStatus } from '@/types/enums';
+import useHeaderTitle from '@/contexts/HeaderTitleContext';
+import { PurchaseRequestStatus, UserRole } from '@/types/enums';
+import useAuthStore from '@/stores/useAuthStore';
 
 export default function RequestDetailPage() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -25,6 +26,7 @@ export default function RequestDetailPage() {
     (state) => state.refreshPurchaseRequests
   );
   const navigate = useNavigate();
+  const role = useAuthStore((state) => state.role);
   const { setTitle } = useHeaderTitle();
 
   const {
@@ -60,6 +62,10 @@ export default function RequestDetailPage() {
       />
     );
   }
+  const backPage =
+    role === UserRole.Employee
+      ? ROUTES.requests.myRequests
+      : ROUTES.dashboard.home;
 
   const renderPanel =
     (showWorkflowPanel && request.status !== PurchaseRequestStatus.Rejected) ||
@@ -70,7 +76,7 @@ export default function RequestDetailPage() {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => navigate(ROUTES.dashboard.home, { replace: true })}
+        onClick={() => navigate(backPage, { replace: true })}
         className="gap-2 text-muted-foreground hover:text-foreground w-fit"
       >
         <ArrowLeft className="h-5 w-5" /> Back to Requests
@@ -102,7 +108,7 @@ export default function RequestDetailPage() {
               />
             </div>
           ) : (
-            /* 🌟 Fallback empty flex growth element to safely occupy alignment height when panel is missing on desktop */
+            /*  Fallback empty flex growth element to safely occupy alignment height when panel is missing on desktop */
             <div className="hidden lg:block flex-1" />
           )}
         </div>

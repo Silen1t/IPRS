@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserRole } from '../types/enums';
+import { UserRole } from '@/types/enums';
 
 export const createUserSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -9,7 +9,6 @@ export const createUserSchema = z.object({
   departmentId: z.number().int().nullable().optional(),
 });
 
-export type CreateUserDto = z.infer<typeof createUserSchema>;
 
 export const userResponseSchema = z.object({
   id: z.guid(),
@@ -22,7 +21,7 @@ export const userResponseSchema = z.object({
   createdAt: z.iso.datetime(),
 });
 
-export type UserResponseDto = z.infer<typeof userResponseSchema>;
+
 
 export const updateUserSchema = z.object({
   fullName: z.string().nullable().optional(),
@@ -31,7 +30,6 @@ export const updateUserSchema = z.object({
   removeDepartment: z.boolean().default(false),
 });
 
-export type UpdateUserDto = z.infer<typeof updateUserSchema>;
 
 export const userProfileSchema = z.object({
   employeeId: z.string(),
@@ -42,7 +40,6 @@ export const userProfileSchema = z.object({
   departmentName: z.string().nullable().optional(),
 });
 
-export type UserProfile = z.infer<typeof userProfileSchema>;
 
 export const userSummaryResponseSchema = z.object({
   id: z.guid(),
@@ -52,4 +49,3 @@ export const userSummaryResponseSchema = z.object({
   departmentId: z.number().int().nullable(),
 });
 
-export type UserSummaryResponse = z.infer<typeof userSummaryResponseSchema>;

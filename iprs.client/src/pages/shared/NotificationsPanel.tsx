@@ -1,18 +1,21 @@
 import useNotificationStore from '@/stores/useNotificationStore';
-import type { NotificationResponseDto } from '@/schemas/notification';
 
 import { Button } from '@/shadcn-ui/components/ui/button';
 import { Inbox } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import NotificationCard from '@/components/notifications/NotificationCard';
 import NotificationDialog from '@/components/notifications/NotificationDialog';
-import { useHeaderTitle } from '@/contexts/HeaderTitleContext';
+import useHeaderTitle from '@/contexts/HeaderTitleContext';
+import { handleNotificationClick } from '@/utils/notification';
+import type { NotificationResponseDto } from '@/types/notification';
 
 export default function NotificationsPanel() {
   const notifications = useNotificationStore((state) => state.notifications);
   const { setTitle } = useHeaderTitle();
-  setTitle('Notifications');
-  
+  useEffect(() => {
+    setTitle('Notifications');
+  }, [setTitle]);
+
   // Selectors for state modification
   const markAsRead = useNotificationStore((state) => state.markAsRead);
   const markAllAsRead = useNotificationStore((state) => state.markAllAsRead);
@@ -58,13 +61,24 @@ export default function NotificationsPanel() {
       {/* --- NOTIFICATION FEED STREAM --- */}
       <div className="space-y-3">
         {notifications.map((notification) => (
-            <NotificationCard notification={notification} key={notification.id} markAsRead={markAsRead} setSelectedNotification={setSelectedNotification}/>
+          <NotificationCard
+            notification={notification}
+            key={notification.id}
+            onNotificationClicked={() => {
+              handleNotificationClick(
+                notification,
+                markAsRead,
+                setSelectedNotification
+              );
+            }}
+          />
         ))}
       </div>
 
-      {/* --- SHADCN RADIX CONTROLLED DIALOG --- */}
-        <NotificationDialog selectedNotification={selectedNotification} setSelectedNotification={setSelectedNotification}/>
+      <NotificationDialog
+        selectedNotification={selectedNotification}
+        setSelectedNotification={setSelectedNotification}
+      />
     </div>
   );
 }
-

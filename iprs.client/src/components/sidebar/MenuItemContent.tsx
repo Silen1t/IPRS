@@ -3,7 +3,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/shadcn-ui/components/ui/sidebar';
-import type React from 'react';
+import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router';
 
 export default function MenuItemContent({
@@ -13,7 +13,7 @@ export default function MenuItemContent({
 }: {
   item: NavItem;
   nav: NavigateFunction;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }) {
   const IconComponent = item.icon;
 

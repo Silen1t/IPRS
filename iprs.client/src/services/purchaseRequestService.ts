@@ -1,15 +1,8 @@
 import type { Guid } from 'guid-typescript';
-import type {
-  CreatePurchaseRequestDto,
-  FinanceApproveDto,
-  FinanceRejectDto,
-  ManagerRejectDto,
-  ManagerReviewDto,
-  PurchaseRequestResponseDto,
-  UpdatePurchaseRequestDto,
-} from '../schemas/purchaseRequest';
+
 import type { PurchaseRequestStatus } from '../types/enums';
 import { api } from './api';
+import type { CreatePurchaseRequestDto, FinanceApproveDto, FinanceRejectDto, ManagerRejectDto, ManagerReviewDto, PurchaseRequestResponseDto, UpdatePurchaseRequestDto } from '@/types/purchaseRequest';
 
 export async function getAllPurchaseRequests(
   from: string | null,

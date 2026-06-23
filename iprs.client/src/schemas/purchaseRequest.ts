@@ -10,11 +10,8 @@ export const approvalStageSchema = z.object({
   note: z.string().nullable(),
 });
 
-export type ApprovalStageDto = z.infer<typeof approvalStageSchema>;
 
-// ==========================================
-// 1. CreatePurchaseRequestDto Schema
-// ==========================================
+
 export const createPurchaseRequestSchema = z.object({
   title: z
     .string()
@@ -31,9 +28,6 @@ export const createPurchaseRequestSchema = z.object({
     .optional(),
 });
 
-export type CreatePurchaseRequestDto = z.infer<
-  typeof createPurchaseRequestSchema
->;
 
 export const updatePurchaseRequestSchema = z.object({
   id: z.guid(),
@@ -52,9 +46,6 @@ export const updatePurchaseRequestSchema = z.object({
     .optional(),
 });
 
-export type UpdatePurchaseRequestDto = z.infer<
-  typeof updatePurchaseRequestSchema
->;
 
 export const purchaseRequestResponseSchema = z.object({
   id: z.guid(),
@@ -76,21 +67,16 @@ export const purchaseRequestResponseSchema = z.object({
   purchaseOrderNumber: z.string().nullable(),
 });
 
-export type PurchaseRequestResponseDto = z.infer<
-  typeof purchaseRequestResponseSchema
->;
 
 export const managerReviewSchema = z.object({
   note: z.string().nullable().optional(),
 });
 
-export type ManagerReviewDto = z.infer<typeof managerReviewSchema>;
 
 export const managerRejectSchema = z.object({
   note: z.string().min(1, 'A rejection reason note is strictly required.'),
 });
 
-export type ManagerRejectDto = z.infer<typeof managerRejectSchema>;
 
 export const financeApproveSchema = z.object({
   purchaseOrderNumber: z
@@ -99,10 +85,7 @@ export const financeApproveSchema = z.object({
   note: z.string().nullable().optional(),
 });
 
-export type FinanceApproveDto = z.infer<typeof financeApproveSchema>;
-
 export const financeRejectSchema = z.object({
   note: z.string().min(1, 'A rejection reason note is strictly required.'),
 });
 
-export type FinanceRejectDto = z.infer<typeof financeRejectSchema>;

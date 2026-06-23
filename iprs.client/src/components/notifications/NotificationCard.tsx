@@ -1,28 +1,20 @@
-import type { NotificationResponseDto } from '@/schemas/notification';
-import { FormatDate } from '@/utils/date';
-import { Guid } from 'guid-typescript';
+import type { NotificationResponseDto } from '@/types/notification';
+import { formatDate } from '@/utils/date';
 import { Bell, FileText } from 'lucide-react';
+
+interface NotificationCardProps {
+  notification: NotificationResponseDto;
+  onNotificationClicked: () => void;
+}
 
 export default function NotificationCard({
   notification,
-  markAsRead,
-  setSelectedNotification,
-}: {
-  notification: NotificationResponseDto;
-  markAsRead: (id: Guid) => void;
-  setSelectedNotification: (notification: NotificationResponseDto) => void;
-}) {
-  const handleNotificationClick = (notification: NotificationResponseDto) => {
-    setSelectedNotification(notification);
-
-    if (!notification.isRead && markAsRead) {
-      markAsRead(Guid.parse(notification.id));
-    }
-  };
+  onNotificationClicked,
+}: NotificationCardProps) {
   return (
     <button
       key={notification.id}
-      onClick={() => handleNotificationClick(notification)}
+      onClick={() => onNotificationClicked()}
       className={`w-full text-left flex gap-4 p-4 rounded-xl border transition-all relative hover:bg-accent/50 ${
         notification.isRead
           ? 'bg-card border-border/60 opacity-80'
@@ -74,7 +66,7 @@ export default function NotificationCard({
         </p>
 
         <p className="text-xs text-muted-foreground">
-          {FormatDate(notification.createdAt)}
+          {formatDate(notification.createdAt)}
         </p>
       </div>
     </button>

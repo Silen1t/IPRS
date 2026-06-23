@@ -13,13 +13,14 @@ import {
   cancelPurchaseRequest,
 } from '@/services/purchaseRequestService';
 
-import type { PurchaseRequestResponseDto } from '@/schemas/purchaseRequest';
-import type { CategoryLookupDto } from '@/schemas/category';
-import type { DepartmentResponseDto } from '@/schemas/department';
+
 import { toast } from 'sonner';
 import { Guid } from 'guid-typescript';
 import { useNavigate } from 'react-router';
 import { ROUTES } from '@/config/routes';
+import type { CategoryLookupDto } from '@/types/category';
+import type { DepartmentResponseDto } from '@/types/department';
+import type { PurchaseRequestResponseDto } from '@/types/purchaseRequest';
 
 export interface WorkflowPayload {
   note?: string;
@@ -83,7 +84,7 @@ const useRequestDetailsWorkflow = (
           '[Workflow Init Error]: Failed to populate core application caches.',
           err
         );
-        setError(true); //  Trip the error flag if any core network call drops out
+        setError(true); 
       } finally {
         setIsRequestsLoading(false);
       }

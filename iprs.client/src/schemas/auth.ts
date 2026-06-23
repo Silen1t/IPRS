@@ -11,8 +11,7 @@ export const loginEmployeeIdSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
-export type LoginEmail = z.infer<typeof loginEmailSchema>;
-export type LoginEmployeeId = z.infer<typeof loginEmployeeIdSchema>;
+
 
 export const authResponseSchema = z.object({
   employeeId: z.string(),
@@ -20,7 +19,4 @@ export const authResponseSchema = z.object({
   token: z.string(),
   role: z.enum(UserRole),
 });
-
-export type AuthResponse = z.infer<typeof authResponseSchema>;
-
 

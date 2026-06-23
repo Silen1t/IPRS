@@ -1,14 +1,15 @@
 import { create } from 'zustand';
-import type { 
-  DepartmentResponseDto, 
-  CreateDepartmentDto, 
-  UpdateDepartmentDto 
-} from '@/schemas/department';
-import { 
-  getDepartments, 
-  createDepartment, 
-  updateDepartment 
+
+import {
+  getDepartments,
+  createDepartment,
+  updateDepartment,
 } from '@/services/departmentService';
+import type {
+  CreateDepartmentDto,
+  DepartmentResponseDto,
+  UpdateDepartmentDto,
+} from '@/types/department';
 
 interface DepartmentState {
   departments: DepartmentResponseDto[];
@@ -28,7 +29,8 @@ const useDepartmentStore = create<DepartmentState>((set) => ({
       const data = await getDepartments();
       set({ departments: data });
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to load departments:', err);
+      if (import.meta.env.DEV)
+        console.error('Failed to load departments:', err);
     } finally {
       set({ isLoading: false });
     }
@@ -39,7 +41,8 @@ const useDepartmentStore = create<DepartmentState>((set) => ({
       const newDept = await createDepartment(dto);
       set((state) => ({ departments: [...state.departments, newDept] }));
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to create department:', err);
+      if (import.meta.env.DEV)
+        console.error('Failed to create department:', err);
       throw err;
     }
   },
@@ -48,10 +51,13 @@ const useDepartmentStore = create<DepartmentState>((set) => ({
     try {
       const updatedDept = await updateDepartment(id, dto);
       set((state) => ({
-        departments: state.departments.map((d) => (d.id === id ? updatedDept : d)),
+        departments: state.departments.map((d) =>
+          d.id === id ? updatedDept : d
+        ),
       }));
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to update department:', err);
+      if (import.meta.env.DEV)
+        console.error('Failed to update department:', err);
       throw err;
     }
   },

@@ -1,5 +1,5 @@
 import { LoginForm } from '@/components/auth/LoginForm';
-import { useHeaderTitle } from '@/contexts/HeaderTitleContext';
+import useHeaderTitle from '@/contexts/HeaderTitleContext';
 
 import {
   Tabs,
@@ -9,13 +9,16 @@ import {
 } from '@/shadcn-ui/components/ui/tabs';
 import useAuthStore from '@/stores/useAuthStore';
 import { LoginMethod } from '@/types/enums';
+import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 
 export default function LoginPage() {
   const token = useAuthStore((state) => state.token);
   const location = useLocation();
   const { setTitle } = useHeaderTitle();
-  setTitle("Login")
+  useEffect(() => {
+    setTitle('Login');
+  }, [setTitle]);
   if (token) {
     const from = location.state?.from?.pathname || '/dashboard';
     return <Navigate to={from} replace />;

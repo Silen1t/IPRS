@@ -2,11 +2,11 @@ import {
   type LoginEmail,
   type AuthResponse,
   type LoginEmployeeId,
-} from '../schemas/auth';
-import { type UserProfile } from '../schemas/user';
+} from '@/types/auth';
 
 import useAuthStore  from '../stores/useAuthStore';
 import { api } from './api';
+import type { UserProfile } from '@/types/users';
 
 export async function loginByEmployeeId(credentials: LoginEmployeeId) {
   await login<LoginEmployeeId>(credentials, 'employeeid');

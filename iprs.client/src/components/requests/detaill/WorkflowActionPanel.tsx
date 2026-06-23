@@ -163,8 +163,7 @@ export default function WorkflowActionPanel({
 
   // Standard Management Approval View
   return (
-    <Card className="border-primary/20 bg-primary/5 shadow-md overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full h-1 bg-primary/40" />
+    <Card className="border-primary/20 bg-primary/5 shadow-md overflow-hidden">
       <CardHeader>
         <CardTitle className="text-sm font-bold tracking-tight">
           Workflow Authorization Action

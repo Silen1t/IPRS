@@ -1,4 +1,3 @@
-import React from 'react';
 import { Badge } from '@/shadcn-ui/components/ui/badge';
 import {
   SaudiRiyal,
@@ -10,6 +9,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { PurchaseRequestStatus } from '@/types/enums';
+import type { ComponentType } from 'react';
+import { formatMoney } from '@/utils/money';
 
 interface RequestDetailHeaderProps {
   id: string;
@@ -24,7 +25,7 @@ const statusConfig: Record<
   {
     label: string;
     className: string;
-    icon: React.ComponentType<{ className?: string }>;
+    icon: ComponentType<{ className?: string }>;
   }
 > = {
   [PurchaseRequestStatus.Draft]: {
@@ -133,10 +134,7 @@ export default function RequestDetailHeader({
         </span>
         <span className="text-xl font-bold text-foreground inline-flex items-center gap-1 mt-0.5">
           <SaudiRiyal className="h-5 w-5 text-muted-foreground" />
-          {new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }).format(totalPrice)}
+          {formatMoney(totalPrice)}
         </span>
       </div>
     </div>

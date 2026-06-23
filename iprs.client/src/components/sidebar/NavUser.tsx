@@ -23,7 +23,6 @@ import useAuthStore from '@/stores/useAuthStore';
 import useNotificationStore from '@/stores/useNotificationStore';
 import usePurchaseRequestStore from '@/stores/usePurchaseRequestStore';
 import {
-  CircleUserRoundIcon,
   EllipsisVerticalIcon,
   LogOutIcon,
 } from 'lucide-react';
@@ -96,17 +95,16 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <CircleUserRoundIcon className="size-4 mr-2 text-muted-foreground" />
                 Account
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <NotificationSubMenu />
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
               onClick={() => {
-                // Fixed execution order: disconnect sockets before clearing state
                 disconnectNotifications();
                 disconnectPurchaseRequests();
                 logout();

@@ -5,7 +5,8 @@ import {
   CardContent,
 } from '@/shadcn-ui/components/ui/card';
 import { Layers, Calendar, SaudiRiyal } from 'lucide-react';
-import { FormatDate } from '@/utils/date';
+import { formatDate } from '@/utils/date';
+import { formatMoney } from '@/utils/money';
 
 interface LineItemSummaryCardProps {
   createdAt: string;
@@ -44,7 +45,7 @@ export default function LineItemSummaryCard({
             <span className="text-xs text-muted-foreground block">
               Submission Timeline
             </span>
-            <span className="text-sm font-medium">{FormatDate(createdAt)}</span>
+            <span className="text-sm font-medium">{formatDate(createdAt)}</span>
           </div>
         </div>
 
@@ -54,9 +55,9 @@ export default function LineItemSummaryCard({
             <span className="text-xs text-muted-foreground block">
               Unit Metric Value
             </span>
-              <span className="text-sm font-medium">
-                {unitPrice.toFixed(2)}
-              </span>
+            <span className="text-sm font-medium">
+              {formatMoney(unitPrice.toFixed(2))}
+            </span>
           </div>
         </div>
 

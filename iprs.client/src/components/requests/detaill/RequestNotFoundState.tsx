@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/shadcn-ui/components/ui/button';
-import { useHeaderTitle } from '@/contexts/HeaderTitleContext';
+import useHeaderTitle from '@/contexts/HeaderTitleContext';
+import { useEffect } from 'react';
 
 interface RequestNotFoundStateProps {
   onReturn: () => void;
@@ -10,7 +11,10 @@ export default function RequestNotFoundState({
   onReturn,
 }: RequestNotFoundStateProps) {
   const { setTitle } = useHeaderTitle();
-  setTitle("Request Not Found");
+
+  useEffect(() => {
+    setTitle('Request Not Found');
+  }, [setTitle]);
 
   return (
     <div className="max-w-4xl mx-auto p-6 text-center space-y-4 h-[50vh] flex flex-col justify-center items-center">

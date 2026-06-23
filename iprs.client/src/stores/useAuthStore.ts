@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { UserRole } from '../types/enums';
+import type { UserRole } from '@/types/enums';
 import { toast } from 'sonner';
 
 interface AuthState {

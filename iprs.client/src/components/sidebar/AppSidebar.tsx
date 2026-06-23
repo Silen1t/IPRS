@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { NavDocuments } from '@/components/sidebar/NavRoles';
 import { NavMain } from '@/components/sidebar/NavMain';
 import { NavUser } from '@/components/sidebar/NavUser';
@@ -15,12 +14,13 @@ import { LayersIcon } from 'lucide-react';
 import useAuthStore from '@/stores/useAuthStore';
 import { UserRole } from '@/types/enums';
 import { SIDEBAR_CONFIG } from '@/config/routes';
+import type { ComponentProps } from 'react';
 
-interface Props extends React.ComponentProps<typeof Sidebar> {
+interface Props extends ComponentProps<typeof Sidebar> {
   userRole: UserRole | null;
 }
 
-export function AppSidebar({ userRole, ...props }: Props) {
+export default function AppSidebar({ userRole, ...props }: Props) {
   const { fullName, employeeId } = useAuthStore();
 
   const config = SIDEBAR_CONFIG;

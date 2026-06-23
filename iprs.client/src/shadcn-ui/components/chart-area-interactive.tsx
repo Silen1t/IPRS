@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 
 import { useIsMobile } from "@/shadcn-ui/hooks/use-mobile"
@@ -29,6 +28,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/shadcn-ui/components/ui/toggle-group"
+import { useEffect, useState } from "react";
 
 export const description = "An interactive area chart"
 
@@ -142,9 +142,9 @@ const chartConfig = {
 
 export function ChartAreaInteractive() {
   const isMobile = useIsMobile()
-  const [timeRange, setTimeRange] = React.useState("90d")
+  const [timeRange, setTimeRange] = useState("90d")
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isMobile) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTimeRange("7d")

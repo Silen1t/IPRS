@@ -1,4 +1,4 @@
-import type { DashboardStatsDto, ReportSummaryDto } from '../schemas/dashboard';
+import type { DashboardStatsDto, ReportSummaryDto } from '@/types/dashboard';
 import type { PurchaseRequestStatus } from '../types/enums';
 import { api } from './api';
 

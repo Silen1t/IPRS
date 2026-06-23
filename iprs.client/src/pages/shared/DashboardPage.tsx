@@ -1,19 +1,36 @@
-import LoadingDataTable from '@/components/requests/table/LoadingDataTable';
-import { useHeaderTitle } from '@/contexts/HeaderTitleContext';
-// import { ChartAreaInteractive } from '@/shadcn-ui/components/chart-area-interactive';
-// import { SectionCards } from '@/shadcn-ui/components/section-cards';
+import useHeaderTitle from '@/contexts/HeaderTitleContext';
+import RoleGuard from '@/components/auth/RoleGuard';
+import { UserRole } from '@/types/enums';
+
+import { useEffect } from 'react';
+import ManagerDashboard from '@/components/dashboard/ManagerDashboard';
+import EmployeeDashboard from '@/components/dashboard/EmployeeDashboard';
+import FinanceDashboard from '@/components/dashboard/FinanceDashboard';
+import AdminDashboard from '@/components/dashboard/AdminDashboard';
 
 export default function DashboardPage() {
   const { setTitle } = useHeaderTitle();
-  setTitle('Dashboard');
+  useEffect(() => {
+    setTitle('Dashboard');
+  }, [setTitle]);
+
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <div className="border-b border-border pb-4 mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Dashboard
-        </h1>
-      </div>
-      <LoadingDataTable />
+      <RoleGuard allowedRoles={[UserRole.Employee]}>
+        <EmployeeDashboard />
+      </RoleGuard>
+
+      <RoleGuard allowedRoles={[UserRole.Manager]}>
+        <ManagerDashboard />
+      </RoleGuard>
+
+      <RoleGuard allowedRoles={[UserRole.Finance]}>
+        <FinanceDashboard />
+      </RoleGuard>
+
+      <RoleGuard allowedRoles={[UserRole.Admin]}>
+        <AdminDashboard />
+      </RoleGuard>
 
       {/* <SectionCards />
 

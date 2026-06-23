@@ -1,12 +1,14 @@
 import { Navigate, Outlet } from 'react-router';
-import useAuthStore  from '@/stores/useAuthStore';
-import type { UserRole } from '../../types/enums';
+import useAuthStore from '@/stores/useAuthStore';
+import type { UserRole } from '@/types/enums';
 
 interface RoleProtectedRouteProps {
   allowedRoles: UserRole[];
 }
 
-export default function RoleProtectedRoute({ allowedRoles }: RoleProtectedRouteProps) {
+export default function RoleProtectedRoute({
+  allowedRoles,
+}: RoleProtectedRouteProps) {
   const role = useAuthStore((state) => state.role);
 
   if (!role || !allowedRoles.includes(role)) {

@@ -1,4 +1,4 @@
-'use client';
+
 import RoleGuard from '@/components/auth/RoleGuard';
 import MenuItemContent from '@/components/sidebar/MenuItemContent';
 import type { NavItem } from '@/config/routes';

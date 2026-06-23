@@ -1,8 +1,5 @@
-import type {
-  CreateDepartmentDto,
-  DepartmentResponseDto,
-  UpdateDepartmentDto,
-} from '../schemas/department';
+
+import type { CreateDepartmentDto, DepartmentResponseDto, UpdateDepartmentDto } from '@/types/department';
 import { api } from './api';
 
 export async function getDepartments(): Promise<DepartmentResponseDto[]> {
