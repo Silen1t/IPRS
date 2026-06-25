@@ -3,6 +3,9 @@ import {
   Bell,
   FileChartColumn,
   Files,
+  Tags,
+  Building2,
+  Users2,
 } from 'lucide-react';
 import { UserRole } from '@/types/enums';
 import type { ComponentType } from 'react';
@@ -14,7 +17,9 @@ export const ROUTES = {
   dashboard: {
     home: '/dashboard',
     reports: '/dashboard/reports',
-    departments: '/dashboard/departments',
+    departmentsManagement: '/dashboard/departments-management',
+    usersManagement: '/dashboard/users-management',
+    categoryManagement: '/dashboard/category-management',
   },
   requests: {
     list: '/dashboard/requests',
@@ -25,6 +30,13 @@ export const ROUTES = {
     edit: (id: string | number) => `/dashboard/requests/${id}/edit`,
   },
   notifications: '/dashboard/notifications',
+  errors: {
+    forbidden: '/forbidden',
+    sessionExpired: '/session-expired',
+    networkError: '/network-error',
+    maintenance: '/maintenance',
+    notFound: '/not-found',
+  },
 } as const;
 
 export type AppRoutes = typeof ROUTES;
@@ -62,6 +74,24 @@ export const SIDEBAR_CONFIG = {
       url: ROUTES.dashboard.reports,
       icon: FileChartColumn,
       roles: [UserRole.Admin, UserRole.Finance],
+    },
+    {
+      title: 'User Management',
+      url: ROUTES.dashboard.usersManagement,
+      icon: Users2,
+      roles: [UserRole.Admin],
+    },
+    {
+      title: 'Department Management',
+      url: ROUTES.dashboard.departmentsManagement,
+      icon: Building2,
+      roles: [UserRole.Admin],
+    },
+    {
+      title: 'Category Management',
+      url: ROUTES.dashboard.categoryManagement,
+      icon: Tags,
+      roles: [UserRole.Admin],
     },
     {
       title: 'My Requests',

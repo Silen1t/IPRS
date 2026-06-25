@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
+
 interface TimelineStepProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   iconBgClass: string;
   title: string;
   titleColorClass?: string;
@@ -9,7 +11,7 @@ interface TimelineStepProps {
   badgeClass?: string;
   actionBy?: string;
   actionAt?: string;
-  extraContent?: React.ReactNode;
+  extraContent?: ReactNode;
 }
 
 export default function TimelineStep({

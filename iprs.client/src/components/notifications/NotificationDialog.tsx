@@ -1,5 +1,4 @@
 import { ROUTES } from '@/config/routes';
-import type { NotificationResponseDto } from '@/schemas/notification';
 import { Button } from '@/shadcn-ui/components/ui/button';
 import {
   Dialog,
@@ -8,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shadcn-ui/components/ui/dialog';
-import { formatDate } from '@/utils/date';
+import type { NotificationResponseDto } from '@/types/notification';
+import { formatDateTime } from '@/utils/date';
 import { useNavigate } from 'react-router';
 
 export default function NotificationDialog({
@@ -40,7 +40,7 @@ export default function NotificationDialog({
               {selectedNotification.message}
             </p>
             <span className="block mt-3 text-[10px] font-mono text-muted-foreground">
-              Received: {formatDate(selectedNotification.createdAt)}
+              Received: {formatDateTime(selectedNotification.createdAt)}
             </span>
           </div>
 

@@ -1,12 +1,16 @@
 import { create } from 'zustand';
 import type { UserRole } from '@/types/enums';
 import { toast } from 'sonner';
+import { refreshAuth } from '@/services/authService';
+import { jwtDecode } from 'jwt-decode';
 
 interface AuthState {
   token: string | null;
   employeeId: string | null;
   fullName: string | null;
   role: UserRole | null;
+  refreshAuth: () => Promise<number>;
+  getSessionDurationMs: () => number;
   login: (
     token: string,
     employeeId: string,
@@ -43,6 +47,25 @@ const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   isLoggedIn: () => get().token !== null,
+
+  refreshAuth: async () => {
+    const dto = await refreshAuth();
+    await get().login(dto.token, dto.employeeId, dto.fullName, dto.role);
+    return 200;
+  },
+  getSessionDurationMs: () => {
+    const { token } = get();
+    if (!token) return 3600000; // Safe default rollback parameter (1 hour)
+
+    try {
+      const decoded = jwtDecode<{ exp: number; iat: number }>(token);
+
+      const totalLifetimeMs = (decoded.exp - decoded.iat) * 1000;
+      return totalLifetimeMs;
+    } catch {
+      return 3600000;
+    }
+  },
 }));
 
 export default useAuthStore;

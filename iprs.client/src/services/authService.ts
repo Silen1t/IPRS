@@ -4,7 +4,7 @@ import {
   type LoginEmployeeId,
 } from '@/types/auth';
 
-import useAuthStore  from '../stores/useAuthStore';
+import useAuthStore from '../stores/useAuthStore';
 import { api } from './api';
 import type { UserProfile } from '@/types/users';
 
@@ -21,9 +21,16 @@ export async function getProfileInfo(): Promise<UserProfile> {
   return res.data;
 }
 
+export async function refreshAuth(): Promise<AuthResponse> {
+  const res = await api.post<AuthResponse>('auth/refresh-token');
+  return res.data;
+}
+
 async function login<T>(credentials: T, method: string) {
   const res = await api.post<AuthResponse>(`auth/login/${method}`, credentials);
   const data = res.data;
 
-  useAuthStore.getState().login(data.token, data.employeeId, data.fullName, data.role);
+  useAuthStore
+    .getState()
+    .login(data.token, data.employeeId, data.fullName, data.role);
 }

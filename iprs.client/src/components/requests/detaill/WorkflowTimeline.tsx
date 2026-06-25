@@ -17,7 +17,7 @@ import {
   BanIcon,
 } from 'lucide-react';
 import { PurchaseRequestStatus } from '@/types/enums';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import TimelineStep from './TimelineStep';
 import type { PurchaseRequestResponseDto } from '@/types/purchaseRequest';
 
@@ -63,7 +63,7 @@ export default function WorkflowTimeline({ request }: WorkflowTimelineProps) {
         <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
           Request Approval Progress
           <div className="font-mono normal-case font-normal text-muted-foreground">
-            Last update: {formatDate(request.updatedAt)}
+            Last update: {formatDateTime(request.updatedAt)}
           </div>
         </CardTitle>
         <CardDescription className="text-xs">
@@ -115,7 +115,7 @@ export default function WorkflowTimeline({ request }: WorkflowTimelineProps) {
                   : 'The request was successfully submitted for approval routing.'
             }
             actionBy={request.requestedBy.fullName}
-            actionAt={`${formatDate(request.createdAt)}`}
+            actionAt={`${formatDateTime(request.createdAt)}`}
           />
 
           {/* STEP 1: OPERATIONAL MANAGER REVIEW */}
@@ -171,7 +171,7 @@ export default function WorkflowTimeline({ request }: WorkflowTimelineProps) {
             actionBy={request.managerApproval?.actionBy.fullName}
             actionAt={
               request.managerApproval
-                ? `${formatDate(request.managerApproval.actionAt)}`
+                ? `${formatDateTime(request.managerApproval.actionAt)}`
                 : undefined
             }
           />
@@ -229,7 +229,7 @@ export default function WorkflowTimeline({ request }: WorkflowTimelineProps) {
             actionBy={request.financeApproval?.actionBy.fullName}
             actionAt={
               request.financeApproval
-                ? `${formatDate(request.financeApproval.actionAt)}`
+                ? `${formatDateTime(request.financeApproval.actionAt)}`
                 : undefined
             }
             extraContent={

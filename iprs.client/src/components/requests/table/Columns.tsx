@@ -11,7 +11,7 @@ import { Badge } from '@/shadcn-ui/components/ui/badge';
 import { purchaseRequestResponseSchema } from '@/schemas/purchaseRequest';
 import { PurchaseRequestStatus } from '@/types/enums';
 import { CategoryCell } from './CategoryCell';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import QuickActions from './QuickActions';
 import { formatMoney } from '@/utils/money';
 
@@ -137,7 +137,7 @@ export const columns: ColumnDef<
       const dateVal = row.original.createdAt;
       return (
         <span className="text-muted-foreground font-mono text-xs">
-          {dateVal ? formatDate(dateVal) : 'N/A'}
+          {dateVal ? formatDateTime(dateVal) : 'N/A'}
         </span>
       );
     },

@@ -7,13 +7,15 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
-public class CategoryService(ICategoryRepository categoryRepo) : ICategoryService
+public class CategoryService(
+    ICategoryRepository categoryRepo,
+    ISignalRRealTimeService realTimeNotifier
+) : ICategoryService
 {
     public async Task<ServiceResult<ICollection<CategoryLookupDto>>> GetAllActiveAsync()
     {
         var categories = await categoryRepo.GetAllActiveAsync();
 
-        // 🎯 Map only the required data properties to the DTO
         var dtos = categories.Select(c => c.ToLookUp()).ToArray();
         return ServiceResult<ICollection<CategoryLookupDto>>.LogSuccess(dtos);
     }
@@ -22,7 +24,8 @@ public class CategoryService(ICategoryRepository categoryRepo) : ICategoryServic
     {
         if (await categoryRepo.NameExistsAsync(dto.Name))
         {
-            return ServiceResult<CategoryLookupDto>.LogFailure("A category with this name already exists. Please try another name.");
+            return ServiceResult<CategoryLookupDto>.LogFailure(
+                "A category with this name already exists. Please try another name.");
         }
 
         Category category = new Category
@@ -32,6 +35,8 @@ public class CategoryService(ICategoryRepository categoryRepo) : ICategoryServic
 
         await categoryRepo.AddAsync(category);
         await categoryRepo.SaveChangesAsync();
+        await realTimeNotifier.UpdateCategories();
+
 
         return ServiceResult<CategoryLookupDto>.LogSuccess(category.ToLookUp());
     }
@@ -45,6 +50,7 @@ public class CategoryService(ICategoryRepository categoryRepo) : ICategoryServic
         category.IsActive = dto.IsActive;
 
         await categoryRepo.SaveChangesAsync();
+
         return ServiceResult<CategoryLookupDto>.LogSuccess(category.ToLookUp());
     }
 }

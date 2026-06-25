@@ -1,19 +1,16 @@
 ﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
 using IPRS.Server.Extensions;
-using IPRS.Server.Hubs;
 using IPRS.Server.Models;
 using IPRS.Server.Repositories.Interfaces;
 using IPRS.Server.Services.Interfaces;
-using Microsoft.AspNetCore.SignalR;
 
 namespace IPRS.Server.Services;
 
 public class NotificationService(
     INotificationRepository notificationRepo,
-    IHubContext<NotificationHub> notificationHubContext
-)
-    : INotificationService
+    ISignalRRealTimeService realTimeNotifier
+) : INotificationService
 {
     public async Task<ServiceResult<ICollection<NotificationResponseDto>>> GetAllNotificationsByUserIdAsync(Guid userId)
     {
@@ -75,7 +72,6 @@ public class NotificationService(
             )
         );
 
-        await notificationHubContext.Clients.User(notifyingUserId.ToString())
-            .SendAsync("ReceiveNotification", notification.Data);
+        await realTimeNotifier.NotifyUserAsync(notifyingUserId.ToString(), notification.Data!);
     }
 }

@@ -20,7 +20,6 @@ import {
   useReactTable,
   type ColumnFiltersState,
   type SortingState,
-  type VisibilityState,
 } from '@tanstack/react-table';
 
 import { Button } from '@/shadcn-ui/components/ui/button';
@@ -53,17 +52,24 @@ import { columns } from './Columns';
 import { useNavigate } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import { TableToolbar } from './TableToolbar';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 
-export function DataTable({
-  data: initialData,
-  quickActionsVisible,
-}: {
+interface DataTableProps {
   data: z.infer<typeof purchaseRequestResponseSchema>[];
   quickActionsVisible: boolean;
-}) {
+  customToolbar?: ReactNode;
+  children?: ReactNode;
+  additionalFilters?: ColumnFiltersState;
+}
+
+export function RequestsTable({
+  data: initialData,
+  quickActionsVisible,
+  customToolbar,
+  children,
+  additionalFilters,
+}: DataTableProps) {
   const [data, setData] = useState(() => initialData);
-  useState<VisibilityState>({});
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState({
@@ -89,10 +95,13 @@ export function DataTable({
   }, [initialData]);
 
   useEffect(() => {
-    setColumnFilters(
-      statusFilter ? [{ id: 'status', value: statusFilter }] : []
-    );
-  }, [statusFilter]);
+    const baseFilters = statusFilter
+      ? [{ id: 'status', value: statusFilter }]
+      : [];
+
+    setColumnFilters([...baseFilters, ...(additionalFilters ?? [])]);
+  }, [statusFilter, additionalFilters]);
+
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
@@ -121,9 +130,10 @@ export function DataTable({
   });
 
   return (
-    <div className="rounded-md overflow-y-hidden overflow-x-auto w-full">
+    <div className="rounded-md overflow-y-hidden overflow-x-auto w-full flex flex-col gap-4">
+      {children}
       <div className="relative flex flex-col gap-4 overflow-y-hidden overflow-x-auto px-4 lg:px-6 focus-visible:outline-none focus-visible:ring-0">
-        <div className="flex items-center justify-between px-4 mt-2">
+        <div className="flex flex-col gap-2 items-start justify-between px-4 mt-2">
           <TableToolbar
             globalFilter={globalFilter}
             setGlobalFilter={setGlobalFilter}
@@ -131,6 +141,7 @@ export function DataTable({
             statusFilter={statusFilter}
             className="w-full"
           />
+          {customToolbar && <div className="w-full mt-2">{customToolbar}</div>}
         </div>
         <div className="overflow-x-auto overflow-y-hidden rounded-lg border w-full">
           <DndContext

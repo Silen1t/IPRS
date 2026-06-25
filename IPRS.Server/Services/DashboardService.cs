@@ -8,7 +8,9 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
-public class DashboardService(IDashboardRepository dashboardRepo) : IDashboardService
+public class DashboardService(
+    IDashboardRepository dashboardRepo
+) : IDashboardService
 {
     public async Task<ServiceResult<DashboardStatsDto>> GetRoleDashboardStatsAsync(Guid userId, string role)
     {

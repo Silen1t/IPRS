@@ -1,6 +1,5 @@
 ﻿using IPRS.Server.Common;
 using IPRS.Server.DTOs;
-using IPRS.Server.Models;
 
 namespace IPRS.Server.Services.Interfaces;
 

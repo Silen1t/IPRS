@@ -2,11 +2,9 @@
 using IPRS.Server.DTOs;
 using IPRS.Server.Extensions;
 using IPRS.Server.Helpers;
-using IPRS.Server.Hubs;
 using IPRS.Server.Models;
 using IPRS.Server.Repositories.Interfaces;
 using IPRS.Server.Services.Interfaces;
-using Microsoft.AspNetCore.SignalR;
 
 namespace IPRS.Server.Services;
 
@@ -15,7 +13,7 @@ public class PurchaseRequestService(
     IUserService userService,
     INotificationService notificationService,
     IDepartmentService departmentService,
-    IHubContext<PurchaseRequestHub> purchaseRequestHubContext
+    ISignalRRealTimeService realTimeNotifier
 ) : IPurchaseRequestService
 {
     public async Task<ServiceResult<PurchaseRequestResponseDto>> CreateRequestAsync(CreatePurchaseRequestDto requestDto,
@@ -53,6 +51,7 @@ public class PurchaseRequestService(
         await requestRepo.SaveChangesAsync();
 
         var createdRequest = await requestRepo.GetByIdAsync(purchaseRequest.Data!.Id);
+        await realTimeNotifier.UpdateDashboardChangedAsync();
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(createdRequest!.ToResponse());
     }
 
@@ -247,9 +246,7 @@ public class PurchaseRequestService(
         await notificationService.NotifyUserAsync(request.RequestedById, message, request.Id);
         await UpdateClientPurchaseRequest(request, request.RequestedById);
 
-        await purchaseRequestHubContext.Clients.Group("Finance")
-            .SendAsync("ReceiveRequest", request.ToResponse());
-
+        await realTimeNotifier.UpdateGroupPurchaseRequest(request.ToResponse(), "Finance");
 
         return ServiceResult<PurchaseRequestResponseDto>.LogSuccess(request.ToResponse());
     }
@@ -360,7 +357,8 @@ public class PurchaseRequestService(
     {
         PurchaseRequestResponseDto dto = request.ToResponse();
         string userIdKey = clientId.ToString().ToLower();
-        await purchaseRequestHubContext.Clients.User(userIdKey)
-            .SendAsync("ReceiveRequest", dto);
+
+        await realTimeNotifier.UpdateClientPurchaseRequest(dto, userIdKey);
+        await realTimeNotifier.UpdateDashboardChangedAsync();
     }
 }

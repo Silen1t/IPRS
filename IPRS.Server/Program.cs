@@ -134,6 +134,36 @@ using (var scope = app.Services.CreateScope())
     await DatabaseSeeder.SeedAsync(context);
 }
 
+app.Use(async (context, next) =>
+{
+    var isMaintenance = app.Configuration.GetValue<bool>("MaintenanceMode:IsEnabled");
+
+    if (isMaintenance)
+    {
+        // Bypass rule: Let backend health check endpoints pass through normally
+        if (context.Request.Path.StartsWithSegments("/health"))
+        {
+            await next(context);
+            return;
+        }
+
+        // Force an explicit 503 response to trip your frontend Axios interceptor
+        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new
+        {
+            message = "The platform is currently undergoing scheduled engineering maintenance."
+        };
+
+        await context.Response.WriteAsJsonAsync(errorResponse);
+        return; // Short-circuit the request pipeline entirely
+    }
+
+    await next(context);
+});
+
+
 app.UseDefaultFiles();
 app.UseCors("AllowFrontend");
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -149,5 +179,9 @@ app.MapStaticAssets();
 app.MapFallbackToFile("/index.html");
 app.MapHub<NotificationHub>("/api/hubs/notifications");
 app.MapHub<PurchaseRequestHub>("/api/hubs/purchase-requests");
+app.MapHub<UserHub>("/api/hubs/users");
+app.MapHub<DepartmentHub>("/api/hubs/departments");
+app.MapHub<CategoryHub>("/api/hubs/categories");
+app.MapHub<DashboardHub>("/api/hubs/dashboard");
 
 app.Run();

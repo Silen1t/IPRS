@@ -1,7 +1,5 @@
-
-
 import { type CSSProperties } from 'react';
-import { Outlet } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import { SiteHeader } from '@/components/sidebar/SiteHeader';
 import {
   SidebarInset,
@@ -9,12 +7,21 @@ import {
 } from '@/shadcn-ui/components/ui/sidebar';
 import AppSidebar from '@/components/sidebar/AppSidebar';
 import useAppInitialization from '@/hooks/useAppInitialization';
+import { ROUTES } from '@/config/routes';
+import { useSessionTimeout } from '@/hooks/useSessionTimeout';
+import SessionExtensionDialog from '@/components/auth/SessionExtensionDialog';
 
 export default function DashboardLayout() {
   const { role, isAuthenticated } = useAppInitialization();
+  const {
+    showWarning,
+    handleExtendSession,
+    handleLogout,
+    warningDurationSeconds,
+  } = useSessionTimeout();
 
   if (!isAuthenticated) {
-    return <div>Loading session validation...</div>;
+    return <Navigate to={ROUTES.errors.forbidden} />;
   }
 
   return (
@@ -37,6 +44,14 @@ export default function DashboardLayout() {
           </div>
         </main>
       </SidebarInset>
+
+      <SessionExtensionDialog
+        key={showWarning ? 'session-modal-active' : 'session-modal-idle'}
+        isOpen={showWarning}
+        onExtend={handleExtendSession}
+        onLogout={handleLogout}
+        warningDurationSeconds={warningDurationSeconds}
+      />
     </SidebarProvider>
   );
 }

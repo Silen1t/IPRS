@@ -10,11 +10,12 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
-public class AuthService(IUserRepository userRepository, IConfiguration config) : IAuthService
+public class AuthService(IUserRepository userRepo, IConfiguration config)
+    : IAuthService
 {
     public async Task<ServiceResult<AuthResponseDto>> LoginByEmailAsync(LoginEmailDto dto)
     {
-        var user = await userRepository.GetByEmailAsync(dto.Email.ToLower().Trim());
+        var user = await userRepo.GetByEmailAsync(dto.Email.ToLower().Trim());
         if (user == null || !user.IsActive)
             return ServiceResult<AuthResponseDto>.LogFailure("Invalid email or password");
 
@@ -27,7 +28,7 @@ public class AuthService(IUserRepository userRepository, IConfiguration config) 
 
     public async Task<ServiceResult<AuthResponseDto>> LoginByEmployeeIdAsync(LoginEmployeeIdDto dto)
     {
-        var user = await userRepository.GetByEmployeeIdAsync(dto.EmployeeId);
+        var user = await userRepo.GetByEmployeeIdAsync(dto.EmployeeId);
         if (user == null || !user.IsActive)
             return ServiceResult<AuthResponseDto>.LogFailure("Invalid employee id or password");
 
@@ -49,7 +50,7 @@ public class AuthService(IUserRepository userRepository, IConfiguration config) 
 
     public async Task<ServiceResult<UserProfileDto>> GetProfileAsync(Guid id)
     {
-        var user = await userRepository.GetProfileByIdAsync(id);
+        var user = await userRepo.GetProfileByIdAsync(id);
         if (user == null || !user.IsActive)
             return ServiceResult<UserProfileDto>.LogFailure("User profile not found or inactive.");
 
@@ -88,5 +89,34 @@ public class AuthService(IUserRepository userRepository, IConfiguration config) 
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task<ServiceResult<AuthResponseDto>> RefreshToken(Guid userId)
+    {
+        try
+        {
+            var user = await userRepo.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                return ServiceResult<AuthResponseDto>.LogFailure("User profile context directory not found.", 404);
+            }
+
+            var activeToken = GenerateJwtToken(user);
+
+            if (string.IsNullOrEmpty(activeToken))
+            {
+                return ServiceResult<AuthResponseDto>.LogFailure(
+                    "Session authorization has expired. Please re-authenticate.", 401);
+            }
+
+            var res = new AuthResponseDto(user.EmployeeId, user.FullName, activeToken, user.Role.ToString());
+
+            return ServiceResult<AuthResponseDto>.LogSuccess(res, "Session token environment extended successfully.");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<AuthResponseDto>.LogFailure($"Critical validation exception: {ex.Message}", 500);
+        }
     }
 }

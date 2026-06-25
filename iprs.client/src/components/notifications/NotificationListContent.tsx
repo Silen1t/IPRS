@@ -5,7 +5,7 @@ import {
   DropdownMenuSeparator,
 } from '@/shadcn-ui/components/ui/dropdown-menu';
 import { cn } from '@/shadcn-ui/lib/utils';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import { handleNotificationClick } from '@/utils/notification';
 import { Guid } from 'guid-typescript';
 import { Check, Circle, X } from 'lucide-react';
@@ -115,7 +115,7 @@ export default function NotificationListContent({
                 <div className="flex-1 space-y-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
-                      {formatDate(item.createdAt)}
+                      {formatDateTime(item.createdAt)}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-normal wrap-break-word whitespace-normal">

@@ -10,19 +10,29 @@ import type {
   CreateCategoryDto,
   UpdateCategoryDto,
 } from '@/types/category';
+import {
+  HubConnectionBuilder,
+  LogLevel,
+  type HubConnection,
+} from '@microsoft/signalr';
 
 interface CategoryState {
   categories: CategoryLookupDto[];
   isLoading: boolean;
+  connection: HubConnection | null;
+  initSignalR: (token: string) => Promise<void>;
+  disconnectSignalR: () => void;
+  refreshCategories: () => Promise<void>;
   fetchCategories: () => Promise<void>;
-  addCategory: (dto: CreateCategoryDto) => Promise<void>;
+  createCategory: (dto: CreateCategoryDto) => Promise<void>;
   modifyCategory: (id: number, dto: UpdateCategoryDto) => Promise<void>;
 }
 
-const useCategoryStore = create<CategoryState>((set) => ({
+const useCategoryStore = create<CategoryState>((set, get) => ({
   categories: [],
   isLoading: false,
-
+  connection: null,
+  
   fetchCategories: async () => {
     set({ isLoading: true });
     try {
@@ -36,7 +46,7 @@ const useCategoryStore = create<CategoryState>((set) => ({
     }
   },
 
-  addCategory: async (dto) => {
+  createCategory: async (dto) => {
     try {
       const responseService = await createCategory(dto);
       if (responseService) {
@@ -64,6 +74,51 @@ const useCategoryStore = create<CategoryState>((set) => ({
     } catch (err) {
       if (import.meta.env.DEV) console.error('Category mutation failure:', err);
       throw err;
+    }
+  },
+
+  refreshCategories: async () => {
+    await get().fetchCategories();
+  },
+
+  initSignalR: async (token: string) => {
+    const existingConnection = get().connection;
+
+    if (existingConnection && existingConnection.state !== 'Disconnected') {
+      return;
+    }
+
+    const connection = new HubConnectionBuilder()
+      .withUrl('https://localhost:7209/api/hubs/categories', {
+        accessTokenFactory: () => token,
+      })
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Warning)
+      .build();
+
+    connection.on('UpdateCategories', async () => {
+      await get().refreshCategories();
+    });
+
+    try {
+      await connection.start();
+      set({ connection });
+      if (import.meta.env.DEV) {
+        console.log('SignalR Connected securely via Zustand store.');
+      }
+    } catch (err) {
+      set({ connection: null });
+      if (import.meta.env.DEV) {
+        console.error('SignalR Hub initialization failed:', err);
+      }
+    }
+  },
+
+  disconnectSignalR: () => {
+    const { connection } = get();
+    if (connection) {
+      connection.stop();
+      set({ connection: null });
     }
   },
 }));

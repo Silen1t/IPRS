@@ -10,7 +10,12 @@ using IPRS.Server.Services.Interfaces;
 
 namespace IPRS.Server.Services;
 
-public class UserService(IUserRepository userRepo) : IUserService
+public class UserService(
+    IUserRepository userRepo,
+    IDepartmentRepository departmentRepo,
+    ISignalRRealTimeService realTimeNotifier
+)
+    : IUserService
 {
     public async Task<ServiceResult<UserResponseDto>> RegisterUserAsync(CreateUserDto dto)
     {
@@ -18,11 +23,29 @@ public class UserService(IUserRepository userRepo) : IUserService
         if (existingUser != null) return ServiceResult<UserResponseDto>.LogFailure("Email is already registered.");
 
         var result = dto.ToEntity();
-
         if (!result.Success) return ServiceResult<UserResponseDto>.LogFailure(result.Message);
 
         User newUser = result.Data!;
         string secureHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+        if (newUser is { DepartmentId: not null, Role: UserRole.Manager })
+        {
+            var targetDepartment = await departmentRepo.GetByIdAsync((int)newUser.DepartmentId);
+            if (targetDepartment != null)
+            {
+                // If the department already has a manager, strip that manager's department link first
+                if (targetDepartment.ManagerId != null)
+                {
+                    var previousManager = await userRepo.GetByIdAsync((Guid)targetDepartment.ManagerId);
+                    if (previousManager != null)
+                    {
+                        previousManager.DepartmentId = null;
+                    }
+                }
+
+                targetDepartment.ManagerId = newUser.Id;
+            }
+        }
 
         const int maxRetries = 3;
         for (int attempt = 0; attempt < maxRetries; attempt++)
@@ -34,7 +57,13 @@ public class UserService(IUserRepository userRepo) : IUserService
 
                 await userRepo.AddAsync(newUser);
                 await userRepo.SaveChangesAsync();
-                break; // success, exit loop
+
+                if (newUser.DepartmentId != null)
+                {
+                    await departmentRepo.SaveChangesAsync();
+                }
+
+                break;
             }
             catch (DbUpdateException ex) when (IsUniqueViolation(ex))
             {
@@ -43,12 +72,12 @@ public class UserService(IUserRepository userRepo) : IUserService
                     return ServiceResult<UserResponseDto>.LogFailure("Email is already registered.");
                 }
 
-                // If it wasn't the email, it's safe to assume it's an EmployeeId collision. Retry!
                 if (attempt == maxRetries - 1)
                     return ServiceResult<UserResponseDto>.LogFailure("Failed to generate a unique Employee ID.");
             }
         }
 
+        await UpdateHubs();
         return ServiceResult<UserResponseDto>.LogSuccess(newUser.ToResponse());
     }
 
@@ -56,7 +85,6 @@ public class UserService(IUserRepository userRepo) : IUserService
     {
         User? user = await userRepo.GetByIdAsync(id);
         if (user == null) return null;
-
         return user.ToResponse();
     }
 
@@ -89,13 +117,12 @@ public class UserService(IUserRepository userRepo) : IUserService
         User? user = await userRepo.GetByIdAsync(id);
         if (user == null) return ServiceResult<UserResponseDto>.LogFailure("User not found.");
 
+        int? originalDepartmentId = user.DepartmentId;
+        UserRole originalRole = user.Role;
+
         if (!string.IsNullOrEmpty(dto.Role))
         {
-            var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(
-                dto.Role!
-                , "Invalid role"
-                , true);
-
+            var convertedRole = EnumHelper.ConvertStringToEnum<UserRole>(dto.Role!, "Invalid role", true);
             if (!convertedRole.Success)
             {
                 return ServiceResult<UserResponseDto>.LogFailure(convertedRole.Message);
@@ -104,14 +131,73 @@ public class UserService(IUserRepository userRepo) : IUserService
             user.Role = convertedRole.Data;
         }
 
-        if (dto.FullName != null) user.FullName = dto.FullName;
+        // Process Department Unlinking / Assignment Loops
         if (dto.RemoveDepartment)
+        {
             user.DepartmentId = null;
-        else if (dto.DepartmentId.HasValue)
+
+            // If they were the manager of their old department, remove them as manager
+            if (originalDepartmentId != null && originalRole == UserRole.Manager)
+            {
+                var oldDept = await departmentRepo.GetByIdAsync((int)originalDepartmentId);
+                if (oldDept != null && oldDept.ManagerId == user.Id)
+                {
+                    oldDept.ManagerId = null;
+                }
+            }
+        }
+        else if (dto.DepartmentId.HasValue && dto.DepartmentId.Value != originalDepartmentId)
+        {
             user.DepartmentId = dto.DepartmentId.Value;
+
+            // If this user is a Manager, clear their link from the old department and wire up the new one
+            if (user.Role == UserRole.Manager)
+            {
+                // Clean up old department
+                if (originalDepartmentId != null)
+                {
+                    var oldDept = await departmentRepo.GetByIdAsync((int)originalDepartmentId);
+                    if (oldDept != null && oldDept.ManagerId == user.Id)
+                    {
+                        oldDept.ManagerId = null;
+                    }
+                }
+
+                var newDept = await departmentRepo.GetByIdAsync(dto.DepartmentId.Value);
+                if (newDept != null)
+                {
+                    // Unset any previous manager assigned to the target department
+                    if (newDept.ManagerId != null && newDept.ManagerId != user.Id)
+                    {
+                        var previousManager = await userRepo.GetByIdAsync((Guid)newDept.ManagerId);
+                        if (previousManager != null)
+                        {
+                            previousManager.DepartmentId = null;
+                        }
+                    }
+
+                    newDept.ManagerId = user.Id;
+                }
+            }
+        }
+
+        // Handle edge-case: Role changed from Manager to something else without changing department ID explicitly
+        else if (originalRole == UserRole.Manager && user.Role != UserRole.Manager && user.DepartmentId != null)
+        {
+            var currentDept = await departmentRepo.GetByIdAsync((int)user.DepartmentId);
+            if (currentDept != null && currentDept.ManagerId == user.Id)
+            {
+                currentDept.ManagerId = null;
+            }
+        }
+
+        if (dto.FullName != null) user.FullName = dto.FullName;
 
         await userRepo.UpdateAsync(user);
         await userRepo.SaveChangesAsync();
+
+        await departmentRepo.SaveChangesAsync();
+        await UpdateHubs();
 
         return ServiceResult<UserResponseDto>.LogSuccess(user.ToResponse());
     }
@@ -124,6 +210,7 @@ public class UserService(IUserRepository userRepo) : IUserService
             return ServiceResult<bool>.LogFailure($"Failed to {(isActive ? "activate" : "deactivate")} user.");
 
         await userRepo.SaveChangesAsync();
+        await realTimeNotifier.UpdateUsersChangedAsync();
         return ServiceResult<bool>.LogSuccess(user.IsActive);
     }
 
@@ -133,6 +220,12 @@ public class UserService(IUserRepository userRepo) : IUserService
         return departmentId == null
             ? ServiceResult<int>.LogFailure("User don't have department.")
             : ServiceResult<int>.LogSuccess(departmentId.Value);
+    }
+
+    private async Task UpdateHubs()
+    {
+        await realTimeNotifier.UpdateUsersChangedAsync();
+        await realTimeNotifier.UpdateDepartmentsChangedAsync();
     }
 
     private long GenerateSecure10DigitNumber()

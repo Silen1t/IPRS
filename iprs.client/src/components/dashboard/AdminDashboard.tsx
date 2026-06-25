@@ -1,12 +1,11 @@
-
-
 import SectionCards from '@/components/dashboard/SectionCards';
 import {
   FileText,
   Clock,
-  FilesIcon,
-  Users2Icon,
-  Building2Icon,
+  Files,
+  Building2,
+  UserCheck,
+  Users2,
 } from 'lucide-react';
 import DashboardCard from './DashboardCard';
 import useDashboardStore from '@/stores/useDashboardStore';
@@ -20,26 +19,28 @@ export default function AdminDashboard() {
         <DashboardCard
           title="Total Departments"
           sideIconOnLeft={true}
-          sideIcon={Building2Icon}
-          value={stats?.totalDepartments ?? ''}
+          sideIcon={Building2}
+          value={stats?.totalDepartments ?? 0}
           icon={FileText}
-          description="Saved requests"
+          description="Active organizational groups"
         />
+
         <DashboardCard
           title="Total Requests"
           sideIconOnLeft={true}
-          sideIcon={FilesIcon}
+          sideIcon={Files}
           value={stats?.totalRequests ?? 0}
           icon={Clock}
-          description="Awaiting action"
+          description="Processed system wide"
         />
+
         <DashboardCard
           title="Total Users"
           sideIconOnLeft={true}
-          sideIcon={Users2Icon}
+          sideIcon={Users2}
           value={stats?.totalUsers ?? 0}
-          icon={Clock}
-          description="Awaiting action"
+          icon={UserCheck}
+          description="Registered system accounts"
         />
       </SectionCards>
       <div className="mt-6 px-4 lg:px-6"></div>

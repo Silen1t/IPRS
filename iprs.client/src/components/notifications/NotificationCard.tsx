@@ -1,5 +1,5 @@
 import type { NotificationResponseDto } from '@/types/notification';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import { Bell, FileText } from 'lucide-react';
 
 interface NotificationCardProps {
@@ -66,7 +66,7 @@ export default function NotificationCard({
         </p>
 
         <p className="text-xs text-muted-foreground">
-          {formatDate(notification.createdAt)}
+          {formatDateTime(notification.createdAt)}
         </p>
       </div>
     </button>

@@ -9,4 +9,5 @@ public interface IDashboardService
 
     Task<ServiceResult<ReportSummaryDto>> GetFilteredReportAsync(DateTime? from, DateTime? to,
         string? status, int? departmentId);
+
 }

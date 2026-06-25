@@ -25,7 +25,8 @@ public static class DependencyInjection
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IDepartmentService, DepartmentService>();
         services.AddScoped<IDashboardService, DashboardService>();
-
+        services.AddScoped<ISignalRRealTimeService, SignalRRealTimeService>();
+        
         return services;
     }
 }

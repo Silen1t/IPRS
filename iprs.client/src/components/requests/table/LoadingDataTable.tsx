@@ -1,6 +1,6 @@
 import usePurchaseRequestStore from '@/stores/usePurchaseRequestStore';
 import { Loader2 } from 'lucide-react';
-import { DataTable } from './DataTable';
+import { RequestsTable } from './RequestsTable';
 import type { PurchaseRequestResponseDto } from '@/types/purchaseRequest';
 
 interface LoadingDataTableProps {
@@ -31,7 +31,7 @@ export default function LoadingDataTable({
           </p>
         </div>
       ) : (
-        <DataTable data={requests} quickActionsVisible={quickActionVisible} />
+        <RequestsTable data={requests} quickActionsVisible={quickActionVisible} />
       )}
     </div>
   );

@@ -1,14 +1,13 @@
-import { Navigate, Outlet, useLocation } from 'react-router';
+import { Outlet, Navigate } from 'react-router';
 import useAuthStore from '@/stores/useAuthStore';
+import { ROUTES } from '@/config/routes';
 
 export default function ProtectedRoute() {
   const token = useAuthStore((state) => state.token);
-  const location = useLocation();
 
   if (!token) {
-    return <Navigate to="/" state={{ from: location }} replace />;
+    return <Navigate to={ROUTES.errors.sessionExpired} replace />;
   }
 
-  // User has a token? Let them through to the dashboard pages!
   return <Outlet />;
 }
