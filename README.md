@@ -103,6 +103,7 @@ The application implements strict four-tier role segmentation enforced simultane
 ### Prerequisites
 
 * [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download)
+* [Node.js](https://nodejs.org/) (v24 or higher)
 * PostgreSQL Database Instance (Hosted on Neon DB)
 
 ### 1. Database Setup & Migrations
