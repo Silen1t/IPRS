@@ -2,15 +2,18 @@
 
 An internal enterprise web application engineered for **Majd Technology Company (شركة مجد للتقنية)** to digitize and enforce a structured, two-level approval workflow for procurement operations. The system automates the lifecycle of internal purchase requests, moving seamlessly from employee submission to departmental manager review, and finally to finance officer verification for Purchase Order (PO) issuance.
 
+---
+
 ### ⚠️ Disclaimer
 > **Educational Project Notice:** *Majd Technology Company (شركة مجد للتقنية)* is a completely fictional company. This system is a self-taught, independent software engineering portfolio project built strictly for learning, architectural modeling, and educational purposes. It does not represent or associate with any real-world entity.
+---
 
 ## 🚀 Architecture & Tech Stack
 
 This project is built using a modern, decoupled full-stack architecture optimized for strict data integrity, type safety, and real-time state synchronization.
 
 * **Frontend:** React 19, TypeScript, Tailwind CSS, Shadcn UI components, React Router v7 (latest unified routing architecture).
-* **State Management & Forms:** Zustand (global auth & notification stores), React Hook Form.
+* **API Fetching & State:** Axios (HTTP client for asynchronous data fetching), Zustand (global auth & notification stores), React Hook Form.
 * **Backend:** ASP.NET Core 10 Web API, Entity Framework Core (Code-First).
 * **Database:** PostgreSQL (Cloud-hosted via Neon DB).
 * **Authentication:** JWT Bearer Token Authentication with custom expired session token rotation.
@@ -38,7 +41,6 @@ Requests are driven by a strict backend-enforced state machine. Status transitio
 * **REJECTED / CANCELLED:** Terminal states. Once moved here, the request locks completely.
 
 ### 2. RBAC (Role-Based Access Control) Matrix
-
 The application implements strict four-tier role segmentation enforced simultaneously via frontend route guards using React Router v7 layout configurations and backend authorization policies (`[Authorize(Roles = "...")]`):
 
 | User Role | Arabic Label | System Responsibility |
@@ -69,8 +71,8 @@ The application implements strict four-tier role segmentation enforced simultane
 │   ├── DTOs/                   # Data Transfer Objects for strict validation
 │   ├── Services/               # Core business logic processing layers
 │   ├── Repositories/           # Data access abstraction layers
-│   ├── Data/                   # Database contexts & seed initialization handlers
-│   ├── Extensions/             # Model conversion tooling & object mapping hooks
+│   ├── Data/                   # Database contexts & seed initialization handlers (runs if DB empty)
+│   ├── Extensions/             # Model conversion tooling & clean DTO object mapping hooks
 │   ├── Helpers/                # Shared utilities and system text tools
 │   ├── Hubs/                   # SignalR real-time messaging pipeline systems
 │   ├── Infrastructure/         # Lower-level core system configuration layers
@@ -84,11 +86,11 @@ The application implements strict four-tier role segmentation enforced simultane
     │   ├── assets/             # Images, SVGs, and brand design elements
     │   ├── components/         # Shared UI modular components (DataTables, Badges)
     │   ├── config/             # React Router v7 configuration, loaders, and API routes
-    │   ├── contexts/           # React context modules or custom event frames
+    │   ├── contexts/           # Custom React context modules or event frames
     │   ├── hooks/              # Custom functional hooks & state behaviors
     │   ├── pages/              # Role-specific dashboard layouts & workflow panels
     │   ├── providers/          # Application shell wrappers & configuration boundaries
-    │   ├── schemas/            # Form validation validation trees (Zod/Yup matrices)
+    │   ├── schemas/            # Form validation trees (Zod/Yup matrices)
     │   ├── services/           # Integrated Axios API communication pipelines
     │   ├── shadcn-ui/          # Configured core design library primitives
     │   ├── store/              # Reactive Zustand global data stores
@@ -103,7 +105,7 @@ The application implements strict four-tier role segmentation enforced simultane
 ### Prerequisites
 
 * [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download)
-* [Node.js](https://nodejs.org/) (v24 or higher)
+* [Node.js](https://nodejs.org/) (v24 or higher - utilized automatically by backend tooling proxy layers)
 * PostgreSQL Database Instance (Hosted on Neon DB)
 
 ### 1. Database Setup & Migrations
@@ -115,22 +117,12 @@ cd IPRS.Server
 dotnet ef database update
 ```
 
-### 2. Spin Up the Backend API
+### 2. Spin Up the Full-Stack Application
 
-Run the ASP.NET Core environment. The pipeline will automatically bind to its local endpoints and initialize the SignalR event listeners:
+Thanks to the integrated `.NET SPA Proxy` architecture (`<SpaProxyLaunchCommand>`), you don't need to open two separate terminals. Simply boot up the server directory environment, and .NET will automatically spawn Node.js in the background to serve your React frontend asset environment concurrently:
 
 ```bash
 dotnet run
-```
-
-### 3. Initialize the Frontend Application
-
-Open a new terminal shell inside the client application directory, restore dependencies, and start the development server environment:
-
-```bash
-cd iprs.client
-npm install
-npm run dev
 ```
 
 ---
@@ -151,7 +143,9 @@ The database seeder provisions standard testing context records out of the box d
 This project served as a deep-dive laboratory for mastering enterprise engineering patterns:
 
 * **Cutting-Edge Framework Configurations:** Built using .NET 10 and React 19, taking full advantage of the new React Router v7 routing structures to encapsulate structural authorization logic cleaner than ever.
+* **Advanced Full-Stack Tool Orchestration:** Leveraged the official .NET SpaProxy pipeline to seamlessly link backend systems directly to a background Vite asset pipeline.
 * **Serverless Cloud Infrastructure Integration:** Structured data schemas using decoupled PostgreSQL configurations, addressing low-latency transactional bindings via cloud instances on Neon DB.
+* **Robust Client-Server Communication:** Leveraged Axios instances directly to control HTTP state validation pipelines, request/response interception, and state synchronization without standard Node proxy overheads.
 * **Secure Token Handshaking:** Crafted a highly resilient token verification pipeline inside `AuthService` using manual `TokenValidationParameters` to safely parse expired access payloads for secure session token rotation.
 * **Strict Build Compliance:** Resolved intricate compilation and type inheritance bugs across standard Shadcn UI primitive abstractions by restructuring explicit React compiler tokens (`ComponentProps`, `ReactNode`).
 * **Reactive UI Syncing:** Coupled relational tracking indices to real-time event loops using a unified Zustand and SignalR synchronization infrastructure.
