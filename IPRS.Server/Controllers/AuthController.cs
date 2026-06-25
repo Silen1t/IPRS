@@ -42,18 +42,18 @@ public class AuthController(IAuthService authService, IConfiguration config) : B
         return Ok(result.Data);
     }
 
-    [Authorize]
+    [AllowAnonymous]
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string expiredAccessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
-        if (!Guid.TryParse(userIdClaim, out Guid parsedUserId))
+        if (string.IsNullOrEmpty(expiredAccessToken))
         {
-            return Unauthorized(new { message = "Invalid token context profile structure." });
+            return Unauthorized(new { message = "No session context token provided." });
         }
 
-        var result = await authService.RefreshToken(parsedUserId);
+        var result = await authService.RefreshSessionAsync(expiredAccessToken);
 
         if (!result.Success)
         {
@@ -64,10 +64,10 @@ public class AuthController(IAuthService authService, IConfiguration config) : B
     }
 
     [HttpGet("session-config")]
-    [AllowAnonymous] 
+    [AllowAnonymous]
     public IActionResult GetSessionConfiguration()
     {
-        var expiryMinutes = config.GetValue<int>("Jwt:ExpiryInMinutes");
+        var expiryMinutes = config.GetValue<int>("JwtSettings:ExpiryInMinutes");
 
         var durationMs = expiryMinutes * 60 * 1000;
 

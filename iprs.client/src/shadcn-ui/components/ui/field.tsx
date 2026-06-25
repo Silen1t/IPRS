@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, type ComponentProps, type ReactNode } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/shadcn-ui/lib/utils"

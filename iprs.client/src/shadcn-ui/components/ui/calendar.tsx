@@ -1,4 +1,3 @@
-import * as React from "react"
 import {
   DayPicker,
   getDefaultClassNames,
@@ -9,6 +8,7 @@ import {
 import { cn } from "@/shadcn-ui/lib/utils"
 import { Button, buttonVariants } from "@/shadcn-ui/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
+import { type ComponentProps, useEffect, useRef } from "react";
 
 function Calendar({
   className,

@@ -8,5 +8,5 @@ public interface IAuthService
     Task<ServiceResult<AuthResponseDto>> LoginByEmailAsync(LoginEmailDto dto);
     Task<ServiceResult<AuthResponseDto>> LoginByEmployeeIdAsync(LoginEmployeeIdDto dto);
     Task<ServiceResult<UserProfileDto>> GetProfileAsync(Guid id);
-    Task<ServiceResult<AuthResponseDto>> RefreshToken(Guid id);
+    Task<ServiceResult<AuthResponseDto>> RefreshSessionAsync(string expiredAccessToken);
 }

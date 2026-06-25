@@ -91,7 +91,65 @@ public class AuthService(IUserRepository userRepo, IConfiguration config)
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public async Task<ServiceResult<AuthResponseDto>> RefreshToken(Guid userId)
+
+    public async Task<ServiceResult<AuthResponseDto>> RefreshSessionAsync(string expiredAccessToken)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            // Build validation parameters targeting "JwtSettings" to match appsettings.json
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidAudience = config.GetValue<string>("JwtSettings:Audience"),
+
+                ValidateIssuer = true,
+                ValidIssuer = config.GetValue<string>("JwtSettings:Issuer"),
+
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(config.GetValue<string>("JwtSettings:Key") ?? string.Empty)),
+
+                // Allow expired tokens to pass validation thresholds safely
+                ValidateLifetime = false
+            };
+
+            // Extract the claims principal
+            var principal = tokenHandler.ValidateToken(expiredAccessToken, tokenValidationParameters,
+                out SecurityToken securityToken);
+
+            // Verify encryption signature matches standard parameters
+            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                    StringComparison.InvariantCultureIgnoreCase))
+            {
+                return ServiceResult<AuthResponseDto>.LogFailure("Invalid token encryption signature mapping.", 401);
+            }
+
+            // Extract User ID Guid claim
+            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid parsedUserId))
+            {
+                return ServiceResult<AuthResponseDto>.LogFailure("Invalid token security context profile structure.",
+                    401);
+            }
+
+            // Execute the database token updating and rotation operations
+            var result = await RefreshToken(parsedUserId);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<AuthResponseDto>.LogFailure(
+                $"An internal error occurred during token verification sync: {ex.Message}", 500);
+        }
+    }
+
+    private async Task<ServiceResult<AuthResponseDto>> RefreshToken(Guid userId)
     {
         try
         {
