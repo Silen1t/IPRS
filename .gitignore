@@ -32,6 +32,7 @@ bld/
 
 # Local development configuration (keeps database credentials safe)
 **/appsettings.Development.json
+IPRS_Project_Brief.md
 
 ## ==========================================
 ## React Frontend (iprs.client)
