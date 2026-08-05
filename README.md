@@ -142,7 +142,7 @@ The database seeder provisions standard testing context records out of the box d
 
 This project served as a deep-dive laboratory for mastering enterprise engineering patterns:
 
-* **Cutting-Edge Framework Configurations:** Built using .NET 10 and React 19, taking full advantage of the new React Router v7 routing structures to encapsulate structural authorization logic cleaner than ever.
+* **Cutting-Edge Framework Configurations:** Built using .NET 10 and React 19, taking full advantage of React Router routing structures to encapsulate structural authorization logic cleaner than ever.
 * **Advanced Full-Stack Tool Orchestration:** Leveraged the official .NET SpaProxy pipeline to seamlessly link backend systems directly to a background Vite asset pipeline.
 * **Serverless Cloud Infrastructure Integration:** Structured data schemas using decoupled PostgreSQL configurations, addressing low-latency transactional bindings via cloud instances on Neon DB.
 * **Robust Client-Server Communication:** Leveraged Axios instances directly to control HTTP state validation pipelines, request/response interception, and state synchronization without standard Node proxy overheads.
