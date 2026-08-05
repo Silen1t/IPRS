@@ -90,7 +90,7 @@ The application implements strict four-tier role segmentation enforced simultane
     │   ├── hooks/              # Custom functional hooks & state behaviors
     │   ├── pages/              # Role-specific dashboard layouts & workflow panels
     │   ├── providers/          # Application shell wrappers & configuration boundaries
-    │   ├── schemas/            # Form validation trees (Zod/Yup matrices)
+    │   ├── schemas/            # Form validation trees (Zod matrices)
     │   ├── services/           # Integrated Axios API communication pipelines
     │   ├── shadcn-ui/          # Configured core design library primitives
     │   ├── store/              # Reactive Zustand global data stores
