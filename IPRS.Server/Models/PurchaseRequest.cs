@@ -1,6 +1,4 @@
-﻿// Models/PurchaseRequest.cs
-
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace IPRS.Server.Models;
 

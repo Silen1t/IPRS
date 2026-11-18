@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using IPRS.Server.Extensions; // Ensure this points to where your .ToGuid() extension lives
+using IPRS.Server.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IPRS.Server.Controllers;
